@@ -106,5 +106,14 @@ export const getFavouriteRecipesByIDs = async (ids: string[]) => {
   const searchResponse = await fetch(url);
   const json = await searchResponse.json();
 
+  // Check if API returned an error (e.g., daily limit reached)
+  if (!searchResponse.ok || json.status === "failure" || json.code === 402) {
+    const errorMessage = json.message || "Spoonacular API error";
+    const error = new Error(errorMessage);
+    (error as any).code = json.code;
+    (error as any).status = json.status;
+    throw error;
+  }
+
   return { results: json };
 };

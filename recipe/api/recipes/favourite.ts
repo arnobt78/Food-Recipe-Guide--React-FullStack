@@ -63,9 +63,36 @@ export default async function handler(
         return response.status(200).json({ results: [] });
       }
 
-      const favourites = await getFavouriteRecipesByIDs(recipeIds);
-
-      return response.status(200).json(favourites);
+      // Try to get recipe details from Spoonacular API
+      // If API limit is reached, still return the recipe IDs so favourites are visible
+      try {
+        const favourites = await getFavouriteRecipesByIDs(recipeIds);
+        return response.status(200).json(favourites);
+      } catch (apiError: any) {
+        // If Spoonacular API fails (e.g., daily limit reached), 
+        // return the recipe IDs from database so favourites are still visible
+        const isApiLimitError = apiError?.code === 402 || 
+                                apiError?.message?.includes("points limit") ||
+                                apiError?.message?.includes("daily limit");
+        
+        if (isApiLimitError) {
+          console.warn("⚠️ [Favourite API] Spoonacular API daily limit reached. Favourites exist in database but details unavailable.");
+          
+          // Return recipe IDs with minimal info so user knows favourites are saved
+          return response.status(200).json({
+            results: recipeIds.map(id => ({
+              id: parseInt(id),
+              title: `Recipe #${id} (Details unavailable - API limit reached)`,
+              image: null,
+              _apiUnavailable: true, // Flag to indicate we couldn't fetch full details
+            })),
+            _message: "Your favourites are saved, but recipe details are temporarily unavailable due to API daily limit. They will appear once the limit resets."
+          });
+        }
+        
+        // For other API errors, re-throw to be handled by outer catch block
+        throw apiError;
+      }
     }
 
     // DELETE: Remove favorite recipe
