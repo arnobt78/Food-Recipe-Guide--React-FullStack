@@ -75,10 +75,18 @@ const SimilarRecipesList = memo(({ similarRecipes, className = "" }: SimilarReci
             : null;
 
           return (
-            <button
+            <div
               key={similarRecipe.id}
               onClick={() => handleRecipeClick(similarRecipe.id)}
-              className="w-full flex gap-3 p-3 bg-slate-800/50 rounded-lg border border-blue-500/20 hover:border-blue-500/40 hover:bg-slate-800/70 transition-all group text-left"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleRecipeClick(similarRecipe.id);
+                }
+              }}
+              className="w-full flex gap-3 p-3 bg-slate-800/50 rounded-lg border border-blue-500/20 hover:border-blue-500/40 hover:bg-slate-800/70 transition-all group text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               {/* Recipe Image */}
               {imageUrl && (
@@ -138,7 +146,7 @@ const SimilarRecipesList = memo(({ similarRecipes, className = "" }: SimilarReci
                   )}
                 </div>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

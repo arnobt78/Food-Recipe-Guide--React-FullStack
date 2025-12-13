@@ -14,8 +14,8 @@
 // Load environment variables first
 import "dotenv/config";
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { autocompleteRecipes } from "../../../lib/recipe-api.js";
-import { setCorsHeaders, handleCorsPreflight } from "../../../lib/api-utils.js";
+import { autocompleteRecipes } from "../../lib/recipe-api.js";
+import { setCorsHeaders, handleCorsPreflight } from "../../lib/api-utils.js";
 
 export default async function handler(
   request: VercelRequest,
