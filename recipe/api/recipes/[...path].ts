@@ -1,18 +1,21 @@
 /**
- * Consolidated Recipes API Handler (Action Route)
- *
- * Handles multiple recipe endpoints using Vercel dynamic routing:
- * - /api/recipes/search → handled via action === "search"
- * - /api/recipes/autocomplete → handled via action === "autocomplete"
- * - /api/recipes/favourite → handled via action === "favourite"
- *
- * Uses [action].ts instead of [...path].ts to avoid routing conflicts with [recipeId]/[...subpath].ts
+ * Consolidated Recipes API Handler (Catch-All Route)
+ * 
+ * Handles ALL recipe endpoints using Vercel catch-all routing:
+ * - /api/recipes/search → handled via path[0] === "search"
+ * - /api/recipes/autocomplete → handled via path[0] === "autocomplete"
+ * - /api/recipes/favourite → handled via path[0] === "favourite"
+ * - /api/recipes/[recipeId]/information → handled via path[0] is numeric, path[1] === "information"
+ * - /api/recipes/[recipeId]/similar → handled via path[0] is numeric, path[1] === "similar"
+ * - /api/recipes/[recipeId]/summary → handled via path[0] is numeric, path[1] === "summary"
+ * 
+ * All original code preserved, consolidated to reduce serverless function count.
  * Frontend calls remain exactly the same - no changes needed.
  */
 
 import "dotenv/config";
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { searchRecipes, autocompleteRecipes } from "../../lib/recipe-api.js";
+import { searchRecipes, autocompleteRecipes, getRecipeInformation, getSimilarRecipes, getRecipeSummary } from "../../lib/recipe-api.js";
 import { prisma } from "../../lib/prisma.js";
 import { getFavouriteRecipesByIDs } from "../../lib/recipe-api.js";
 import {
@@ -32,13 +35,19 @@ export default async function handler(
 
   setCorsHeaders(response);
 
-  // Extract action from dynamic route parameter [action]
-  // In Vercel, dynamic routes [action] put the value in request.query.action
-  const action = (request.query.action as string) || "";
-
-  // Fallback: extract from URL pathname if action param not available
-  let endpoint = action;
-  if (!endpoint && request.url) {
+  // Extract path segments from catch-all route parameter
+  // In Vercel, catch-all routes [...path] put segments in request.query.path as array or string
+  const pathParam = request.query.path;
+  let pathArray: string[] = [];
+  
+  if (Array.isArray(pathParam)) {
+    pathArray = pathParam;
+  } else if (typeof pathParam === "string") {
+    pathArray = pathParam.split("/").filter(Boolean);
+  }
+  
+  // Fallback: extract from URL pathname if path param not available
+  if (pathArray.length === 0 && request.url) {
     try {
       const url = new URL(
         request.url,
@@ -46,13 +55,78 @@ export default async function handler(
       );
       const segments = url.pathname.split("/").filter(Boolean);
       const recipesIndex = segments.indexOf("recipes");
-      if (recipesIndex !== -1 && segments[recipesIndex + 1]) {
-        endpoint = segments[recipesIndex + 1];
+      if (recipesIndex !== -1) {
+        pathArray = segments.slice(recipesIndex + 1);
       }
     } catch {
-      // URL parsing failed, use empty endpoint
+      // URL parsing failed
     }
   }
+
+  const firstSegment = pathArray[0] || "";
+  const secondSegment = pathArray[1] || "";
+  
+  // Check if first segment is numeric (recipeId) - handle recipe detail endpoints
+  if (firstSegment && /^\d+$/.test(firstSegment)) {
+    const recipeId = firstSegment;
+    const endpoint = secondSegment;
+
+    if (!endpoint) {
+      return response.status(400).json({ error: "Recipe endpoint is required (information, similar, or summary)" });
+    }
+
+    // Only allow GET method for recipe detail endpoints
+    if (request.method !== "GET") {
+      return response.status(405).json({ error: "Method not allowed" });
+    }
+
+    try {
+      // Handle /api/recipes/[recipeId]/information
+      if (endpoint === "information") {
+        const options = {
+          includeNutrition: request.query.includeNutrition === "true",
+          addWinePairing: request.query.addWinePairing === "true",
+          addTasteData: request.query.addTasteData === "true",
+        };
+
+        const results = await getRecipeInformation(recipeId, options);
+        return response.status(200).json(results);
+      }
+
+      // Handle /api/recipes/[recipeId]/similar
+      if (endpoint === "similar") {
+        const number = request.query.number 
+          ? parseInt(request.query.number as string, 10) 
+          : 10;
+
+        if (isNaN(number) || number < 1 || number > 100) {
+          return response.status(400).json({ error: "Number must be between 1 and 100" });
+        }
+
+        const results = await getSimilarRecipes(recipeId, number);
+        return response.status(200).json(results);
+      }
+
+      // Handle /api/recipes/[recipeId]/summary
+      if (endpoint === "summary") {
+        const results = await getRecipeSummary(recipeId);
+        return response.status(200).json(results);
+      }
+
+      return response.status(404).json({ error: "Endpoint not found" });
+    } catch (error) {
+      console.error(`❌ [Recipe Detail API] Error handling ${endpoint} request:`, error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const statusCode = errorMessage.includes("limit") || errorMessage.includes("402") ? 402 : 500;
+      return response.status(statusCode).json({ 
+        error: `Failed to fetch ${endpoint}`,
+        message: errorMessage
+      });
+    }
+  }
+
+  // Handle action endpoints (search, autocomplete, favourite)
+  const endpoint = firstSegment;
 
   try {
     // Handle /api/recipes/search
