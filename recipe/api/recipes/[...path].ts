@@ -40,15 +40,33 @@ export default async function handler(
   // IMPORTANT: Always extract from URL pathname first for reliability (works in all scenarios)
   let pathArray: string[] = [];
   
-  // Primary method: Extract from URL pathname (most reliable, works even if query.path is missing)
-  if (request.url) {
+  // Extract path segments - try multiple methods for reliability
+  // Method 1: Use request.query.path (Vercel's catch-all route parameter)
+  const pathParam = request.query.path;
+  if (pathParam) {
+    if (Array.isArray(pathParam)) {
+      pathArray = pathParam;
+    } else if (typeof pathParam === "string") {
+      pathArray = pathParam.split("/").filter(Boolean);
+    }
+  }
+  
+  // Method 2: Extract from URL pathname if query.path didn't work
+  if (pathArray.length === 0 && request.url) {
     try {
-      // Handle both absolute and relative URLs
-      const urlString = request.url.startsWith("http") 
-        ? request.url 
-        : `http://${request.headers.host || "localhost"}${request.url}`;
+      // Vercel provides request.url which may be relative or absolute
+      let url: URL;
       
-      const url = new URL(urlString);
+      if (request.url.startsWith("http://") || request.url.startsWith("https://")) {
+        url = new URL(request.url);
+      } else {
+        // For relative URLs, construct full URL
+        const protocol = request.headers["x-forwarded-proto"] || "https";
+        const host = request.headers.host || request.headers["x-forwarded-host"] || "localhost";
+        url = new URL(request.url, `${protocol}://${host}`);
+      }
+      
+      // Extract path segments after /api/recipes
       const segments = url.pathname.split("/").filter(Boolean);
       const recipesIndex = segments.indexOf("recipes");
       if (recipesIndex !== -1 && recipesIndex < segments.length - 1) {
@@ -56,35 +74,31 @@ export default async function handler(
       }
     } catch (error) {
       console.error("❌ [Recipes API] URL parsing error:", error);
-      // Fallback to query.path if URL parsing fails
-      const pathParam = request.query.path;
-      if (Array.isArray(pathParam)) {
-        pathArray = pathParam;
-      } else if (typeof pathParam === "string") {
-        pathArray = pathParam.split("/").filter(Boolean);
-      }
     }
   }
   
-  // Fallback: Use request.query.path if URL parsing didn't work or returned empty
-  if (pathArray.length === 0) {
-    const pathParam = request.query.path;
-    if (Array.isArray(pathParam)) {
-      pathArray = pathParam;
-    } else if (typeof pathParam === "string") {
-      pathArray = pathParam.split("/").filter(Boolean);
+  // Method 3: Try extracting from request.url directly (last resort)
+  if (pathArray.length === 0 && request.url) {
+    // Simple regex extraction as fallback
+    const match = request.url.match(/\/api\/recipes\/(.+?)(?:\?|$)/);
+    if (match && match[1]) {
+      pathArray = match[1].split("/").filter(Boolean);
     }
   }
 
-  // Debug logging for troubleshooting (can be removed in production)
-  console.log("🔍 [Recipes API] Path extraction:", {
-    url: request.url,
-    host: request.headers.host,
-    pathParam: request.query.path,
-    pathArray,
-    firstSegment: pathArray[0],
-    secondSegment: pathArray[1],
-  });
+  // Debug logging for troubleshooting (helps identify routing issues in production)
+  // Only log when path extraction might have issues or for numeric IDs
+  if (pathArray.length === 0 || (pathArray[0] && /^\d+$/.test(pathArray[0]))) {
+    console.log("🔍 [Recipes API] Path extraction:", {
+      url: request.url,
+      host: request.headers.host,
+      pathParam: request.query.path,
+      pathArray,
+      firstSegment: pathArray[0],
+      secondSegment: pathArray[1],
+      method: request.method,
+    });
+  }
 
   const firstSegment = pathArray[0] || "";
   const secondSegment = pathArray[1] || "";

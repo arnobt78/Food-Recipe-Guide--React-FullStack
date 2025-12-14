@@ -21,20 +21,13 @@ import { Badge } from "./ui/badge";
 import { AiOutlineSearch } from "react-icons/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAutocompleteRecipes } from "../hooks/useRecipes";
+import { getRecipeImageUrl } from "../utils/imageUtils";
 
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   placeholder?: string;
-}
-
-/**
- * Construct autocomplete recipe image URL from recipe ID and imageType
- * Per SPOONACULAR_API_DOCS.md: https://img.spoonacular.com/recipes/{id}-312x231.{imageType}
- */
-function getAutocompleteImageUrl(recipeId: number, imageType: string): string {
-  return `https://img.spoonacular.com/recipes/${recipeId}-312x231.${imageType}`;
 }
 
 /**
@@ -191,7 +184,7 @@ const SearchInput = memo(
                 <div className="p-2 space-y-1">
                   {autocompleteResults.map((recipe) => {
                     const imageUrl = recipe.imageType
-                      ? getAutocompleteImageUrl(recipe.id, recipe.imageType)
+                      ? getRecipeImageUrl(recipe.id, recipe.imageType)
                       : null;
 
                     return (

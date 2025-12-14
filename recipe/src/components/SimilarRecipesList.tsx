@@ -21,22 +21,11 @@ import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { UtensilsCrossed, Clock, Users, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
+import { getRecipeImageUrl } from "../utils/imageUtils";
 
 interface SimilarRecipesListProps {
   similarRecipes: SimilarRecipe[];
   className?: string;
-}
-
-/**
- * Construct recipe image URL from recipe ID and imageType
- * Per SPOONACULAR_API_DOCS.md: https://img.spoonacular.com/recipes/{id}-312x231.{imageType}
- * 
- * @param recipeId - Recipe ID
- * @param imageType - Image type (jpg, png, etc.)
- * @returns Image URL string
- */
-function getSimilarRecipeImageUrl(recipeId: number, imageType: string): string {
-  return `https://img.spoonacular.com/recipes/${recipeId}-312x231.${imageType}`;
 }
 
 /**
@@ -71,7 +60,7 @@ const SimilarRecipesList = memo(({ similarRecipes, className = "" }: SimilarReci
         {similarRecipes.map((similarRecipe) => {
           // Construct image URL from imageType (per SPOONACULAR_API_DOCS.md)
           const imageUrl = similarRecipe.imageType
-            ? getSimilarRecipeImageUrl(similarRecipe.id, similarRecipe.imageType)
+            ? getRecipeImageUrl(similarRecipe.id, similarRecipe.imageType)
             : null;
 
           return (
