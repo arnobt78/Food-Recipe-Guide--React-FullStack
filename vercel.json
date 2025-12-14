@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd recipe && npm install && npm run build",
-  "outputDirectory": "recipe/dist",
-  "installCommand": "cd recipe && npm install",
-  "framework": "vite"
-}
