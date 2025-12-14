@@ -55,6 +55,8 @@ import {
 } from "./hooks/useRecipes";
 import { Recipe, SearchRecipesResponse } from "./types";
 import { toast } from "sonner";
+import { Card } from "./components/ui/card";
+import { ChefHat } from "lucide-react";
 
 /**
  * Main App Content (wrapped in RecipeProvider and AuthProvider)
@@ -112,6 +114,25 @@ const AppContent = () => {
       toast.error("Failed to load favourite recipes.");
     }
   }, [favouritesError]);
+
+  // Smooth scroll to favourites content on responsive screens when tab is selected
+  useEffect(() => {
+    if (selectedTab === "favourites" && window.innerWidth < 768) {
+      // Small delay to ensure DOM is ready and content is rendered
+      const scrollTimer = setTimeout(() => {
+        const favouritesContent = document.querySelector('[data-favourites-content]');
+        if (favouritesContent) {
+          favouritesContent.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
+      }, 300); // Delay to allow animation to start
+
+      return () => clearTimeout(scrollTimer);
+    }
+  }, [selectedTab]);
 
   // Accumulate recipes across all pages for better UX
   // Store all fetched pages in a ref to accumulate results
@@ -220,6 +241,7 @@ const AppContent = () => {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
                 className="space-y-6"
+                data-search-content
               >
                 {/* Search Input - Always visible, never shows loading */}
                 <SearchInput
@@ -227,6 +249,57 @@ const AppContent = () => {
                   onChange={setSearchTerm}
                   onSubmit={handleSearchSubmit}
                 />
+
+                {/* Default Instructions - Show when no search term */}
+                {!searchTerm.trim() && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="max-w-7xl mx-auto"
+                  >
+                    <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 p-6 sm:p-8">
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 bg-purple-500/20 rounded-lg flex-shrink-0">
+                            <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                              Discover Amazing Recipes
+                            </h3>
+                            <p className="text-gray-300 text-sm sm:text-base leading-relaxed mb-4">
+                              Search through thousands of delicious recipes from around the world. 
+                              Find recipes by ingredients, cuisine, dietary preferences, or simply 
+                              type what you're craving!
+                            </p>
+                            <div className="space-y-2">
+                              <p className="text-sm font-semibold text-purple-300 mb-2">Try searching for:</p>
+                              <ul className="space-y-1 text-sm text-gray-400">
+                                <li className="flex items-center gap-2">
+                                  <span className="text-purple-400">•</span>
+                                  <span>Recipe names (e.g., "pasta", "chicken curry")</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                  <span className="text-purple-400">•</span>
+                                  <span>Ingredients (e.g., "tomatoes", "chicken")</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                  <span className="text-purple-400">•</span>
+                                  <span>Cuisines (e.g., "italian", "chinese", "mexican")</span>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                  <span className="text-purple-400">•</span>
+                                  <span>Dietary preferences (e.g., "vegan", "gluten-free")</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                )}
 
                 {/* Error Message */}
                 <ErrorMessage message={apiError} />
@@ -261,6 +334,7 @@ const AppContent = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
+                data-favourites-content
               >
                 {isLoadingFavourites ? (
                   <SkeletonRecipeGrid count={4} />

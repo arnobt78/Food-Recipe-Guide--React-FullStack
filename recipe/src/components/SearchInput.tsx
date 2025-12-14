@@ -57,6 +57,7 @@ const SearchInput = memo(
     const navigate = useNavigate();
     const [showAutocomplete, setShowAutocomplete] = useState(false);
     const [debouncedQuery, setDebouncedQuery] = useState(value);
+    const [hasUserInteracted, setHasUserInteracted] = useState(false); // Track user interaction
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,14 +77,20 @@ const SearchInput = memo(
       debouncedQuery.trim().length >= 2
     );
 
-    // Show autocomplete when there are results and query is long enough
+    // Show autocomplete only when user has interacted AND there are results
+    // This prevents auto-expanding on page load/navigation return
     useEffect(() => {
-      setShowAutocomplete(
-        value.trim().length >= 2 &&
-        autocompleteResults.length > 0 &&
-        !isLoadingAutocomplete
-      );
-    }, [value, autocompleteResults, isLoadingAutocomplete]);
+      if (hasUserInteracted) {
+        setShowAutocomplete(
+          value.trim().length >= 2 &&
+          autocompleteResults.length > 0 &&
+          !isLoadingAutocomplete
+        );
+      } else {
+        // Don't show autocomplete if user hasn't interacted yet
+        setShowAutocomplete(false);
+      }
+    }, [value, autocompleteResults, isLoadingAutocomplete, hasUserInteracted]);
 
     // Handle clicking outside to close autocomplete
     useEffect(() => {
@@ -127,10 +134,30 @@ const SearchInput = memo(
             required
             placeholder={placeholder}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              setHasUserInteracted(true); // Mark as interacted when user types
+              onChange(e.target.value);
+            }}
             onFocus={() => {
+              setHasUserInteracted(true); // Mark as interacted when user focuses
               if (value.trim().length >= 2 && autocompleteResults.length > 0) {
                 setShowAutocomplete(true);
+              }
+              
+              // Smooth scroll to search content on responsive screens (mobile/tablet)
+              // Only scroll if we're on a small screen (below md breakpoint)
+              if (window.innerWidth < 768) {
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                  const searchContent = document.querySelector('[data-search-content]');
+                  if (searchContent) {
+                    searchContent.scrollIntoView({ 
+                      behavior: 'smooth', 
+                      block: 'start',
+                      inline: 'nearest'
+                    });
+                  }
+                }, 100);
               }
             }}
             className="flex-1 px-4 py-3 bg-transparent text-white placeholder-gray-400 text-lg sm:text-2xl border-none outline-none focus-visible:ring-0 focus-visible:ring-offset-0"

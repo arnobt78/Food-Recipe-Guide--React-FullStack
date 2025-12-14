@@ -324,16 +324,45 @@ const RecipePage = memo(() => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 
                 {/* Decorative SVG Icons Overlay */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <img
+                {/* Chef icon - Top left */}
+                <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+                  <motion.img
                     src="/chef.svg"
                     alt="Chef"
-                    className="w-6 h-6 sm:w-8 sm:h-8 opacity-60 drop-shadow-lg"
+                    className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 opacity-70 drop-shadow-2xl"
+                    initial={{ opacity: 0, scale: 0.8, x: -20 }}
+                    animate={{ opacity: 0.7, scale: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      ease: "easeOut",
+                      delay: 0.2
+                    }}
+                    whileHover={{ 
+                      opacity: 0.9, 
+                      scale: 1.1,
+                      transition: { duration: 0.3 }
+                    }}
                   />
-                  <img
+                </div>
+                
+                {/* Cooking icon - Bottom right */}
+                <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+                  <motion.img
                     src="/cooking.svg"
                     alt="Cooking"
-                    className="w-6 h-6 sm:w-8 sm:h-8 opacity-60 drop-shadow-lg"
+                    className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 opacity-70 drop-shadow-2xl"
+                    initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                    animate={{ opacity: 0.7, scale: 1, x: 0 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      ease: "easeOut",
+                      delay: 0.4
+                    }}
+                    whileHover={{ 
+                      opacity: 0.9, 
+                      scale: 1.1,
+                      transition: { duration: 0.3 }
+                    }}
                   />
                 </div>
               </div>
@@ -398,7 +427,7 @@ const RecipePage = memo(() => {
                   </TabsList>
 
                   {/* Summary Tab */}
-                  <TabsContent value="summary" className="space-y-6 mt-0">
+                  <TabsContent value="summary" className="space-y-6 mt-0 transition-opacity duration-300">
                     {/* Data Source Note */}
                     <div className="mb-4 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
                       <div className="flex items-start gap-2">
@@ -576,7 +605,7 @@ const RecipePage = memo(() => {
                   </TabsContent>
 
                   {/* Info Tab - Reuse content from RecipeDetailCard */}
-                  <TabsContent value="info" className="space-y-6 mt-0">
+                  <TabsContent value="info" className="space-y-6 mt-0 transition-opacity duration-300">
                     {/* Health & Diet Information */}
                     {(recipeInfo?.healthScore || recipeInfo?.veryHealthy || recipeInfo?.diets?.length || 
                       recipeInfo?.vegan || recipeInfo?.vegetarian || recipeInfo?.glutenFree || 
@@ -886,7 +915,7 @@ const RecipePage = memo(() => {
                   </TabsContent>
 
                   {/* Details Tab - Ingredients, Instructions, Wine Pairing */}
-                  <TabsContent value="details" className="space-y-6 mt-0">
+                  <TabsContent value="details" className="space-y-6 mt-0 transition-opacity duration-300">
                     {/* Ingredients List - Enhanced with all API properties */}
                     {recipeInfo?.extendedIngredients && recipeInfo.extendedIngredients.length > 0 && (
                       <Card className="bg-gradient-to-br from-orange-900/30 to-red-900/30 border-orange-500/30 p-4 sm:p-6">
@@ -1170,7 +1199,7 @@ const RecipePage = memo(() => {
 
                   {/* Nutrition Tab - Display full nutrition data */}
                   {recipeInfo?.nutrition && (
-                    <TabsContent value="nutrition" className="space-y-6 mt-0">
+                    <TabsContent value="nutrition" className="space-y-6 mt-0 transition-opacity duration-300">
                       <Card className="bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-500/30 p-4 sm:p-6">
                         <div className="flex items-start gap-4 mb-4">
                           <div className="p-3 bg-green-500/20 rounded-lg">
@@ -1294,7 +1323,7 @@ const RecipePage = memo(() => {
 
                   {/* Taste Tab - Display taste data with progress bars */}
                   {recipeInfo?.taste && (
-                    <TabsContent value="taste" className="space-y-6 mt-0">
+                    <TabsContent value="taste" className="space-y-6 mt-0 transition-opacity duration-300">
                       <Card className="bg-gradient-to-br from-orange-900/30 to-red-900/30 border-orange-500/30 p-4 sm:p-6">
                         <div className="flex items-start gap-4 mb-4">
                           <div className="p-3 bg-orange-500/20 rounded-lg">
@@ -1334,7 +1363,7 @@ const RecipePage = memo(() => {
 
                   {/* Notes Tab - Lazy loaded */}
                   {isAuthenticated && (
-                    <TabsContent value="notes" className="space-y-4 mt-0">
+                    <TabsContent value="notes" className="space-y-4 mt-0 transition-opacity duration-300">
                       <Suspense fallback={<div className="h-64 w-full" />}>
                         {recipe && <RecipeNotes recipe={recipe} />}
                       </Suspense>
@@ -1343,7 +1372,7 @@ const RecipePage = memo(() => {
 
                   {/* Images Tab - Lazy loaded */}
                   {isAuthenticated && (
-                    <TabsContent value="images" className="space-y-4 mt-0">
+                    <TabsContent value="images" className="space-y-4 mt-0 transition-opacity duration-300">
                       <Suspense fallback={<div className="h-64 w-full" />}>
                         {recipe && <RecipeImageGallery recipe={recipe} />}
                       </Suspense>
