@@ -33,8 +33,10 @@ import EmptyState from "./EmptyState";
 import SkeletonShoppingList from "./SkeletonShoppingList";
 import ConfirmationDialog from "./ConfirmationDialog";
 
+// Note: onRecipeClick removed - RecipeCard handles navigation internally via useNavigate
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface ShoppingListGeneratorProps {
-  // Note: onRecipeClick removed - RecipeCard handles navigation internally via useNavigate
+  // Empty interface - props removed as RecipeCard handles navigation internally
 }
 
 /**

@@ -29,8 +29,10 @@ import ConfirmationDialog from "./ConfirmationDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import RecipeCard from "./RecipeCard";
 
+// Note: onRecipeClick removed - RecipeCard handles navigation internally via useNavigate
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface MealPlannerProps {
-  // Note: onRecipeClick removed - RecipeCard handles navigation internally via useNavigate
+  // Empty interface - props removed as RecipeCard handles navigation internally
 }
 
 /**

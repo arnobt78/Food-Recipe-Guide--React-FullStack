@@ -12,7 +12,7 @@
 import { memo } from "react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { CheckCircle2, AlertCircle, Info, ShoppingCart, Package } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, ShoppingCart } from "lucide-react";
 import { Recipe } from "../types";
 
 interface IngredientMatchDetailsProps {
