@@ -1,12 +1,10 @@
 {
-  "name": "recipe",
+  "name": "food-app",
   "private": true,
   "version": "2.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:vercel": "./dev-vercel.sh",
-    "setup:vercel": "./setup-vercel.sh",
+    "dev": "./dev.sh",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -45,6 +43,7 @@
     "@vercel/node": "^4.0.0",
     "@vitejs/plugin-react-swc": "^3.7.1",
     "autoprefixer": "^10.4.22",
+    "concurrently": "^9.2.1",
     "daisyui": "^5.5.8",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^4.6.2",
