@@ -31,7 +31,8 @@ module.exports = {
       'warn',
       { 
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_'
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_'
       }
     ],
     'react-hooks/exhaustive-deps': 'warn',

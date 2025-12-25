@@ -31,6 +31,9 @@ interface PersistedCache {
  * @param queryClient - React Query client instance
  */
 export function persistQueryCache(queryClient: QueryClient): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     const cache = queryClient.getQueryCache().getAll();
     const cacheData = cache.map((query) => ({
@@ -59,6 +62,9 @@ export function persistQueryCache(queryClient: QueryClient): void {
  * @param queryClient - React Query client instance
  */
 export function restoreQueryCache(queryClient: QueryClient): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     const stored = localStorage.getItem(CACHE_STORAGE_KEY);
     const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
@@ -94,6 +100,9 @@ export function restoreQueryCache(queryClient: QueryClient): void {
  * Clear persisted React Query cache
  */
 export function clearPersistedCache(): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     localStorage.removeItem(CACHE_STORAGE_KEY);
     localStorage.removeItem(CACHE_VERSION_KEY);
@@ -109,6 +118,11 @@ export function clearPersistedCache(): void {
  * @param queryClient - React Query client instance
  */
 export function setupCachePersistence(queryClient: QueryClient): () => void {
+  // Only setup in browser environment (not during SSR)
+  if (typeof window === "undefined") {
+    return () => {}; // Return no-op cleanup function
+  }
+  
   // Restore cache on initialization
   restoreQueryCache(queryClient);
 

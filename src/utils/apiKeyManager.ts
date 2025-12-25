@@ -64,19 +64,22 @@ function getAllApiKeys(): ApiKeyConfig[] {
   }
 
   // Get stored API keys (from localStorage, set via UI or manually)
-  try {
-    const stored = localStorage.getItem(API_KEYS_STORAGE_KEY);
-    if (stored) {
-      const storedKeys: ApiKeyConfig[] = JSON.parse(stored);
-      storedKeys.forEach((storedKey) => {
-        // Only add if not already in list (avoid duplicates)
-        if (!keys.some((k) => k.key === storedKey.key)) {
-          keys.push(storedKey);
-        }
-      });
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem(API_KEYS_STORAGE_KEY);
+      if (stored) {
+        const storedKeys: ApiKeyConfig[] = JSON.parse(stored);
+        storedKeys.forEach((storedKey) => {
+          // Only add if not already in list (avoid duplicates)
+          if (!keys.some((k) => k.key === storedKey.key)) {
+            keys.push(storedKey);
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to load stored API keys:", error);
     }
-  } catch (error) {
-    console.warn("Failed to load stored API keys:", error);
   }
 
   return keys;
@@ -88,6 +91,9 @@ function getAllApiKeys(): ApiKeyConfig[] {
  * @param keys - Array of API key configurations
  */
 function saveApiKeys(keys: ApiKeyConfig[]): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     localStorage.setItem(API_KEYS_STORAGE_KEY, JSON.stringify(keys));
   } catch (error) {
@@ -101,6 +107,9 @@ function saveApiKeys(keys: ApiKeyConfig[]): void {
  * @returns Current key index
  */
 function getCurrentKeyIndex(): number {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return 0;
+  
   try {
     const stored = localStorage.getItem(CURRENT_KEY_INDEX_KEY);
     return stored ? parseInt(stored, 10) : 0;
@@ -115,6 +124,9 @@ function getCurrentKeyIndex(): number {
  * @param index - Key index
  */
 function setCurrentKeyIndex(index: number): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     localStorage.setItem(CURRENT_KEY_INDEX_KEY, String(index));
   } catch (error) {

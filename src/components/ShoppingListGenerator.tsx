@@ -13,6 +13,7 @@
  */
 
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -22,12 +23,22 @@ import {
   useDeleteShoppingList,
 } from "../hooks/useShoppingList";
 import { useFavouriteRecipes } from "../hooks/useRecipes";
-import { generateShoppingList, exportShoppingListToText } from "../utils/shoppingListGenerator";
+import {
+  generateShoppingList,
+  exportShoppingListToText,
+} from "../utils/shoppingListGenerator";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
-import { ShoppingCart, Plus, X, Download, CheckCircle2, Circle } from "lucide-react";
+import {
+  ShoppingCart,
+  Plus,
+  X,
+  Download,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import { ShoppingList, Recipe } from "../types";
 import EmptyState from "./EmptyState";
 import SkeletonShoppingList from "./SkeletonShoppingList";
@@ -51,8 +62,13 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<ShoppingList | null>(null);
 
-  const { data: shoppingLists = [], isLoading, error: shoppingListsError } = useShoppingLists();
-  const { data: favouriteRecipes = [], error: favouritesError } = useFavouriteRecipes();
+  const {
+    data: shoppingLists = [],
+    isLoading,
+    error: shoppingListsError,
+  } = useShoppingLists();
+  const { data: favouriteRecipes = [], error: favouritesError } =
+    useFavouriteRecipes();
 
   // Handle errors with toast notifications
   useEffect(() => {
@@ -76,19 +92,16 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
     return generateShoppingList(selectedRecipes);
   }, [selectedRecipes]);
 
-  const handleToggleRecipe = useCallback(
-    (recipe: Recipe) => {
-      setSelectedRecipes((prev) => {
-        const isSelected = prev.some((r) => r.id === recipe.id);
-        if (isSelected) {
-          return prev.filter((r) => r.id !== recipe.id);
-        } else {
-          return [...prev, recipe];
-        }
-      });
-    },
-    []
-  );
+  const handleToggleRecipe = useCallback((recipe: Recipe) => {
+    setSelectedRecipes((prev) => {
+      const isSelected = prev.some((r) => r.id === recipe.id);
+      if (isSelected) {
+        return prev.filter((r) => r.id !== recipe.id);
+      } else {
+        return [...prev, recipe];
+      }
+    });
+  }, []);
 
   const handleCreateList = useCallback(() => {
     if (!listName.trim() || selectedRecipes.length === 0) return;
@@ -121,13 +134,10 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
     [updateShoppingList]
   );
 
-  const handleDelete = useCallback(
-    (list: ShoppingList) => {
-      setListToDelete(list);
-      setDeleteDialogOpen(true);
-    },
-    []
-  );
+  const handleDelete = useCallback((list: ShoppingList) => {
+    setListToDelete(list);
+    setDeleteDialogOpen(true);
+  }, []);
 
   const confirmDelete = useCallback(() => {
     if (listToDelete) {
@@ -195,7 +205,9 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                     <EmptyState message="No favourite recipes. Add some from the search tab!" />
                   ) : (
                     favouriteRecipes.map((recipe) => {
-                      const isSelected = selectedRecipes.some((r) => r.id === recipe.id);
+                      const isSelected = selectedRecipes.some(
+                        (r) => r.id === recipe.id
+                      );
                       return (
                         <motion.div
                           key={recipe.id}
@@ -213,16 +225,24 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                             <CardContent className="p-4">
                               <div className="flex items-start gap-3">
                                 {recipe.image && (
-                                  <img
-                                    src={recipe.image}
-                                    alt={recipe.title}
-                                    className="w-16 h-16 rounded object-cover"
-                                  />
+                                  <div className="relative w-16 h-16 rounded overflow-hidden">
+                                    <Image
+                                      src={recipe.image}
+                                      alt={recipe.title}
+                                      fill
+                                      className="object-cover rounded"
+                                    />
+                                  </div>
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{recipe.title}</p>
+                                  <p className="text-sm font-medium truncate">
+                                    {recipe.title}
+                                  </p>
                                   {isSelected && (
-                                    <Badge variant="outline" className="glow-badge mt-1 text-xs">
+                                    <Badge
+                                      variant="outline"
+                                      className="glow-badge mt-1 text-xs"
+                                    >
                                       Selected
                                     </Badge>
                                   )}
@@ -247,8 +267,8 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                         key={index}
                         className="text-xs p-2 bg-slate-800/50 rounded border border-purple-500/20"
                       >
-                        <span className="font-medium">{item.name}</span> - {item.quantity}{" "}
-                        {item.unit || ""} ({item.category})
+                        <span className="font-medium">{item.name}</span> -{" "}
+                        {item.quantity} {item.unit || ""} ({item.category})
                       </div>
                     ))}
                   </div>
@@ -282,7 +302,9 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
 
       {/* Existing Shopping Lists */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold gradient-text">Your Shopping Lists</h3>
+        <h3 className="text-lg font-semibold gradient-text">
+          Your Shopping Lists
+        </h3>
         {shoppingLists.length === 0 ? (
           <EmptyState message="No shopping lists yet. Create one above!" />
         ) : (
@@ -323,7 +345,8 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="text-sm text-gray-400">
-                        {list.items.length} items • {list.recipeIds.length} recipes
+                        {list.items.length} items • {list.recipeIds.length}{" "}
+                        recipes
                       </div>
                       <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-1">
                         {list.items.slice(0, 5).map((item, index) => (
@@ -343,9 +366,15 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
                           size="sm"
                           onClick={() => handleToggleComplete(list)}
                           className="flex-1 text-xs"
-                          aria-label={list.isCompleted ? `Mark ${list.name} as incomplete` : `Mark ${list.name} as complete`}
+                          aria-label={
+                            list.isCompleted
+                              ? `Mark ${list.name} as incomplete`
+                              : `Mark ${list.name} as complete`
+                          }
                         >
-                          {list.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                          {list.isCompleted
+                            ? "Mark Incomplete"
+                            : "Mark Complete"}
                         </Button>
                         <Button
                           variant="outline"
@@ -382,4 +411,3 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
 ShoppingListGenerator.displayName = "ShoppingListGenerator";
 
 export default ShoppingListGenerator;
-

@@ -1,6 +1,6 @@
 /**
  * Reusable Loading State Component
- * 
+ *
  * Features:
  * - Consistent loading UI
  * - SVG icon integration
@@ -8,6 +8,7 @@
  */
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface LoadingStateProps {
   message?: string;
@@ -27,7 +28,13 @@ const LoadingState = ({
       className={`text-center text-purple-300 text-xl py-12 ${className}`}
     >
       <div className="flex items-center justify-center gap-2">
-        <img src={icon} alt="Loading" className="w-6 h-6 animate-spin" />
+        <Image
+          src={icon}
+          alt="Loading"
+          width={24}
+          height={24}
+          className="animate-spin"
+        />
         <span>{message}</span>
       </div>
     </motion.div>
@@ -35,4 +42,3 @@ const LoadingState = ({
 };
 
 export default LoadingState;
-

@@ -79,6 +79,9 @@ export function getMockRecipeSummary(
  * @returns True if mock data should be used
  */
 export function shouldUseMockData(): boolean {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return false;
+  
   try {
     return localStorage.getItem("recipe_app_use_mock_data") === "true";
   } catch {
@@ -92,6 +95,9 @@ export function shouldUseMockData(): boolean {
  * @param enabled - Whether to use mock data
  */
 export function setUseMockData(enabled: boolean): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     if (enabled) {
       localStorage.setItem("recipe_app_use_mock_data", "true");

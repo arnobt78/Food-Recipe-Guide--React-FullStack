@@ -56,6 +56,9 @@ export function saveSearchToLocalStorage(
   page: number,
   data: SearchRecipesResponse
 ): void {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     const cacheKey = getSearchCacheKey(searchTerm, page);
     const entry: CacheEntry<SearchRecipesResponse> = {
@@ -81,6 +84,9 @@ export function getSearchFromLocalStorage(
   searchTerm: string,
   page: number
 ): SearchRecipesResponse | null {
+  // Only access localStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return null;
+  
   try {
     const cacheKey = getSearchCacheKey(searchTerm, page);
     const cached = localStorage.getItem(cacheKey);
@@ -114,6 +120,9 @@ export function saveSearchToSessionStorage(
   page: number,
   data: SearchRecipesResponse
 ): void {
+  // Only access sessionStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     const cacheKey = getSearchCacheKey(searchTerm, page);
     const entry: CacheEntry<SearchRecipesResponse> = {
@@ -138,6 +147,9 @@ export function getSearchFromSessionStorage(
   searchTerm: string,
   page: number
 ): SearchRecipesResponse | null {
+  // Only access sessionStorage in browser environment (not during SSR)
+  if (typeof window === "undefined") return null;
+  
   try {
     const cacheKey = getSearchCacheKey(searchTerm, page);
     const cached = sessionStorage.getItem(cacheKey);
@@ -199,6 +211,9 @@ export function saveSearchResults(
  * Clear all search caches
  */
 export function clearSearchCaches(): void {
+  // Only access storage in browser environment (not during SSR)
+  if (typeof window === "undefined") return;
+  
   try {
     // Clear localStorage
     Object.keys(localStorage).forEach((key) => {
@@ -224,6 +239,9 @@ export function clearSearchCaches(): void {
  * @returns Array of search terms that have cached results
  */
 export function getCachedSearchTerms(): string[] {
+  // Only access storage in browser environment (not during SSR)
+  if (typeof window === "undefined") return [];
+  
   const terms = new Set<string>();
 
   try {

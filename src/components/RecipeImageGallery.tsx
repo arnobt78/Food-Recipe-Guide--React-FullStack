@@ -13,6 +13,7 @@
  */
 
 import { memo, useState, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -211,12 +212,12 @@ const RecipeImageGallery = memo(({ recipe }: RecipeImageGalleryProps) => {
                         >
                           <Card className="glow-card border-purple-500/30 overflow-hidden">
                             <div className="aspect-square relative">
-                              <img
+                              <Image
                                 src={image.imageUrl}
                                 alt={image.caption || `Recipe ${type} image`}
-                                className="w-full h-full object-cover"
-                                loading={imageIndex < 3 ? "eager" : "lazy"}
-                                decoding="async"
+                                fill
+                                className="object-cover"
+                                priority={imageIndex < 3}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                               <Button

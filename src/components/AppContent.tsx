@@ -5,6 +5,8 @@
  * This component contains all the main UI logic
  */
 
+"use client";
+
 import {
   FormEvent,
   useMemo,
@@ -15,7 +17,7 @@ import {
   lazy,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RecipeProvider, useRecipeContext } from "../context/RecipeContext";
+import { useRecipeContext } from "../context/RecipeContext";
 import { useAuth } from "../context/AuthContext";
 import SearchInput from "./SearchInput";
 import TabNavigation from "./TabNavigation";

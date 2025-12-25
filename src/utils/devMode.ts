@@ -23,8 +23,9 @@ export function isDevelopmentMode(): boolean {
  * Set via localStorage: recipe_app_cache_only_mode = "true"
  */
 export function isCacheOnlyMode(): boolean {
-  if (!isDevelopmentMode()) {
-    return false; // Only available in development
+  // Only available in development and browser environment (not during SSR)
+  if (!isDevelopmentMode() || typeof window === "undefined") {
+    return false;
   }
 
   try {
@@ -40,7 +41,8 @@ export function isCacheOnlyMode(): boolean {
  * @param enabled - Whether to enable cache-only mode
  */
 export function setCacheOnlyMode(enabled: boolean): void {
-  if (!isDevelopmentMode()) {
+  // Only available in development and browser environment (not during SSR)
+  if (!isDevelopmentMode() || typeof window === "undefined") {
     console.warn("Cache-only mode is only available in development");
     return;
   }

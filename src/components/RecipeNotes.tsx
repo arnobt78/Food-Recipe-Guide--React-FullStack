@@ -13,7 +13,12 @@
  */
 
 import { memo, useState, useCallback, useEffect } from "react";
-import { useRecipeNote, useSaveRecipeNote, useDeleteRecipeNote } from "../hooks/useRecipeNotes";
+import Image from "next/image";
+import {
+  useRecipeNote,
+  useSaveRecipeNote,
+  useDeleteRecipeNote,
+} from "../hooks/useRecipeNotes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -117,7 +122,7 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl flex items-center gap-2">
-            <img src="/food.svg" alt="Notes" className="w-5 h-5" />
+            <Image src="/food.svg" alt="Notes" width={20} height={20} />
             My Notes
           </CardTitle>
           {note && !isEditing && (
@@ -148,13 +153,13 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
       <CardContent className="space-y-4">
         {isEditing ? (
           <>
-              <Input
-                placeholder="Note title (optional)"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="bg-slate-800/50 border-purple-500/30 text-white"
-                aria-label="Note title"
-              />
+            <Input
+              placeholder="Note title (optional)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="bg-slate-800/50 border-purple-500/30 text-white"
+              aria-label="Note title"
+            />
 
             <Textarea
               placeholder="Write your notes here... (cooking tips, modifications, etc.)"
@@ -174,7 +179,9 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
                   <button
                     key={star}
                     type="button"
-                    onClick={() => setRating(rating === star ? undefined : star)}
+                    onClick={() =>
+                      setRating(rating === star ? undefined : star)
+                    }
                     className="focus:outline-none"
                     aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
                     aria-pressed={rating === star}
@@ -327,4 +334,3 @@ const RecipeNotes = memo(({ recipe }: RecipeNotesProps) => {
 RecipeNotes.displayName = "RecipeNotes";
 
 export default RecipeNotes;
-

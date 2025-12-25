@@ -8,11 +8,12 @@
  * - Gradient glow styling
  * - Responsive design (phone-screen and sm:desktop-screen)
  * - Accessible and reusable
- * 
+ *
  * Following SPOONACULAR_API_DOCS.md: Uses /recipes/autocomplete endpoint
  */
 
 import { memo, useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -64,11 +65,12 @@ const SearchInput = memo(
     }, [value]);
 
     // Fetch autocomplete suggestions
-    const { data: autocompleteResults = [], isLoading: isLoadingAutocomplete } = useAutocompleteRecipes(
-      debouncedQuery,
-      10,
-      debouncedQuery.trim().length >= 2
-    );
+    const { data: autocompleteResults = [], isLoading: isLoadingAutocomplete } =
+      useAutocompleteRecipes(
+        debouncedQuery,
+        10,
+        debouncedQuery.trim().length >= 2
+      );
 
     // Show autocomplete only when user has interacted AND there are results
     // This prevents auto-expanding on page load/navigation return
@@ -76,8 +78,8 @@ const SearchInput = memo(
       if (hasUserInteracted) {
         setShowAutocomplete(
           value.trim().length >= 2 &&
-          autocompleteResults.length > 0 &&
-          !isLoadingAutocomplete
+            autocompleteResults.length > 0 &&
+            !isLoadingAutocomplete
         );
       } else {
         // Don't show autocomplete if user hasn't interacted yet
@@ -97,21 +99,28 @@ const SearchInput = memo(
       };
 
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     // Handle autocomplete selection
-    const handleAutocompleteSelect = useCallback((recipeId: number) => {
-      setShowAutocomplete(false);
-      router.push(`/recipe/${recipeId}`);
-    }, [router]);
+    const handleAutocompleteSelect = useCallback(
+      (recipeId: number) => {
+        setShowAutocomplete(false);
+        router.push(`/recipe/${recipeId}`);
+      },
+      [router]
+    );
 
     // Handle form submit
-    const handleSubmit = useCallback((e: React.FormEvent) => {
-      e.preventDefault();
-      setShowAutocomplete(false);
-      onSubmit(e);
-    }, [onSubmit]);
+    const handleSubmit = useCallback(
+      (e: React.FormEvent) => {
+        e.preventDefault();
+        setShowAutocomplete(false);
+        onSubmit(e);
+      },
+      [onSubmit]
+    );
 
     return (
       <div ref={containerRef} className="relative w-full">
@@ -136,18 +145,20 @@ const SearchInput = memo(
               if (value.trim().length >= 2 && autocompleteResults.length > 0) {
                 setShowAutocomplete(true);
               }
-              
+
               // Smooth scroll to search content on responsive screens (mobile/tablet)
               // Only scroll if we're on a small screen (below md breakpoint)
               if (window.innerWidth < 768) {
                 // Small delay to ensure DOM is ready
                 setTimeout(() => {
-                  const searchContent = document.querySelector('[data-search-content]');
+                  const searchContent = document.querySelector(
+                    "[data-search-content]"
+                  );
                   if (searchContent) {
-                    searchContent.scrollIntoView({ 
-                      behavior: 'smooth', 
-                      block: 'start',
-                      inline: 'nearest'
+                    searchContent.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start",
+                      inline: "nearest",
                     });
                   }
                 }, 100);
@@ -195,13 +206,12 @@ const SearchInput = memo(
                       >
                         {/* Recipe Image */}
                         {imageUrl && (
-                          <div className="flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-purple-500/20">
-                            <img
+                          <div className="relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border border-purple-500/20">
+                            <Image
                               src={imageUrl}
                               alt={recipe.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              loading="lazy"
-                              decoding="async"
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                           </div>
                         )}

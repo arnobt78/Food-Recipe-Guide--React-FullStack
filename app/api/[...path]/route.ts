@@ -1,9 +1,9 @@
 /**
  * Unified Next.js API Route Handler
- * 
+ *
  * Consolidates ALL API endpoints into a single serverless function.
  * This allows unlimited endpoints on Vercel Hobby plan (counts as 1 function).
- * 
+ *
  * Handles all routes:
  * - /api (root)
  * - /api/recipes/search, autocomplete, favourite
@@ -15,13 +15,18 @@
  * - /api/upload
  * - /api/recipes/images
  * - /api/recipes/notes
- * 
+ *
  * All original endpoints preserved - frontend URLs unchanged.
  * Production-ready with proper error handling, CORS, authentication, and type safety.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { handleCorsPreflight, requireAuth, jsonResponse, getCorsHeaders } from "../../../lib/api-utils-nextjs";
+import {
+  handleCorsPreflight,
+  requireAuth,
+  jsonResponse,
+  getCorsHeaders,
+} from "../../../lib/api-utils-nextjs";
 import {
   searchRecipes,
   autocompleteRecipes,
@@ -33,6 +38,7 @@ import {
   getWinePairing,
 } from "../../../lib/recipe-api";
 import { prisma } from "../../../lib/prisma";
+import { Prisma } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 
 // Initialize Cloudinary
@@ -57,59 +63,141 @@ interface ShoppingListItem {
  * Helper: Parse search options from query params
  * Extracts all optional search parameters for recipe search
  */
-function parseSearchOptions(searchParams: URLSearchParams): Parameters<typeof searchRecipes>[2] {
+function parseSearchOptions(
+  searchParams: URLSearchParams
+): Parameters<typeof searchRecipes>[2] {
   const options: Parameters<typeof searchRecipes>[2] = {};
-  
+
   // Boolean options
-  if (searchParams.get("fillIngredients") === "true") options.fillIngredients = true;
-  if (searchParams.get("addRecipeInformation") === "true") options.addRecipeInformation = true;
-  if (searchParams.get("addRecipeInstructions") === "true") options.addRecipeInstructions = true;
-  if (searchParams.get("addRecipeNutrition") === "true") options.addRecipeNutrition = true;
-  if (searchParams.get("instructionsRequired") === "true") options.instructionsRequired = true;
+  if (searchParams.get("fillIngredients") === "true")
+    options.fillIngredients = true;
+  if (searchParams.get("addRecipeInformation") === "true")
+    options.addRecipeInformation = true;
+  if (searchParams.get("addRecipeInstructions") === "true")
+    options.addRecipeInstructions = true;
+  if (searchParams.get("addRecipeNutrition") === "true")
+    options.addRecipeNutrition = true;
+  if (searchParams.get("instructionsRequired") === "true")
+    options.instructionsRequired = true;
   if (searchParams.get("ignorePantry") === "true") options.ignorePantry = true;
-  
+
   // String options
-  const stringOptions: (keyof typeof options)[] = [
-    "cuisine", "excludeCuisine", "diet", "intolerances", "equipment",
-    "includeIngredients", "excludeIngredients", "type", "sort",
-    "author", "tags", "titleMatch"
-  ];
-  stringOptions.forEach(key => {
+  const stringOptions = [
+    "cuisine",
+    "excludeCuisine",
+    "diet",
+    "intolerances",
+    "equipment",
+    "includeIngredients",
+    "excludeIngredients",
+    "type",
+    "sort",
+    "author",
+    "tags",
+    "titleMatch",
+  ] as const;
+  stringOptions.forEach((key) => {
     const value = searchParams.get(key);
-    if (value) options[key] = value;
+    if (value) {
+      (options as Record<string, string>)[key] = value;
+    }
   });
-  
+
   // Sort direction
   const sortDir = searchParams.get("sortDirection");
   if (sortDir === "asc" || sortDir === "desc") {
     options.sortDirection = sortDir;
   }
-  
+
   // Number options
-  const numberOptions: (keyof typeof options)[] = [
-    "maxReadyTime", "minServings", "maxServings", "minCalories", "maxCalories",
-    "minProtein", "maxProtein", "minCarbs", "maxCarbs", "minFat", "maxFat",
-    "minAlcohol", "maxAlcohol", "minCaffeine", "maxCaffeine", "minCopper", "maxCopper",
-    "minCalcium", "maxCalcium", "minCholine", "maxCholine", "minCholesterol", "maxCholesterol",
-    "minFluoride", "maxFluoride", "minSaturatedFat", "maxSaturatedFat",
-    "minVitaminA", "maxVitaminA", "minVitaminC", "maxVitaminC", "minVitaminD", "maxVitaminD",
-    "minVitaminE", "maxVitaminE", "minVitaminK", "maxVitaminK", "minVitaminB1", "maxVitaminB1",
-    "minVitaminB2", "maxVitaminB2", "minVitaminB5", "maxVitaminB5", "minVitaminB3", "maxVitaminB3",
-    "minVitaminB6", "maxVitaminB6", "minVitaminB12", "maxVitaminB12",
-    "minFiber", "maxFiber", "minFolate", "maxFolate", "minFolicAcid", "maxFolicAcid",
-    "minIodine", "maxIodine", "minIron", "maxIron", "minMagnesium", "maxMagnesium",
-    "minManganese", "maxManganese", "minPhosphorus", "maxPhosphorus",
-    "minPotassium", "maxPotassium", "minSelenium", "maxSelenium", "minSodium", "maxSodium",
-    "minSugar", "maxSugar", "minZinc", "maxZinc", "recipeBoxId"
-  ];
-  numberOptions.forEach(key => {
+  const numberOptions = [
+    "maxReadyTime",
+    "minServings",
+    "maxServings",
+    "minCalories",
+    "maxCalories",
+    "minProtein",
+    "maxProtein",
+    "minCarbs",
+    "maxCarbs",
+    "minFat",
+    "maxFat",
+    "minAlcohol",
+    "maxAlcohol",
+    "minCaffeine",
+    "maxCaffeine",
+    "minCopper",
+    "maxCopper",
+    "minCalcium",
+    "maxCalcium",
+    "minCholine",
+    "maxCholine",
+    "minCholesterol",
+    "maxCholesterol",
+    "minFluoride",
+    "maxFluoride",
+    "minSaturatedFat",
+    "maxSaturatedFat",
+    "minVitaminA",
+    "maxVitaminA",
+    "minVitaminC",
+    "maxVitaminC",
+    "minVitaminD",
+    "maxVitaminD",
+    "minVitaminE",
+    "maxVitaminE",
+    "minVitaminK",
+    "maxVitaminK",
+    "minVitaminB1",
+    "maxVitaminB1",
+    "minVitaminB2",
+    "maxVitaminB2",
+    "minVitaminB5",
+    "maxVitaminB5",
+    "minVitaminB3",
+    "maxVitaminB3",
+    "minVitaminB6",
+    "maxVitaminB6",
+    "minVitaminB12",
+    "maxVitaminB12",
+    "minFiber",
+    "maxFiber",
+    "minFolate",
+    "maxFolate",
+    "minFolicAcid",
+    "maxFolicAcid",
+    "minIodine",
+    "maxIodine",
+    "minIron",
+    "maxIron",
+    "minMagnesium",
+    "maxMagnesium",
+    "minManganese",
+    "maxManganese",
+    "minPhosphorus",
+    "maxPhosphorus",
+    "minPotassium",
+    "maxPotassium",
+    "minSelenium",
+    "maxSelenium",
+    "minSodium",
+    "maxSodium",
+    "minSugar",
+    "maxSugar",
+    "minZinc",
+    "maxZinc",
+    "recipeBoxId",
+  ] as const;
+  numberOptions.forEach((key) => {
     const value = searchParams.get(key);
     if (value) {
       const num = parseInt(value, 10);
-      if (!isNaN(num)) options[key] = num;
+      if (!isNaN(num)) {
+        (options as Record<string, number>)[key] = num;
+      }
     }
   });
-  
+
   // Remove undefined values
   return Object.fromEntries(
     Object.entries(options).filter(([_, v]) => v !== undefined)
@@ -125,7 +213,7 @@ export async function GET(
 ) {
   // Performance tracking: Record start time
   const startTime = Date.now();
-  
+
   // Handle CORS preflight
   const corsResponse = handleCorsPreflight(request);
   if (corsResponse) return corsResponse;
@@ -158,19 +246,21 @@ export async function GET(
     // ============================================
     // RECIPE ROUTES
     // ============================================
-    
+
     // Route: /api/recipes/search
     if (path[0] === "recipes" && path[1] === "search") {
       const searchTerm = searchParams.get("searchTerm") || "";
       const page = parseInt(searchParams.get("page") || "0", 10);
       const searchOptions = parseSearchOptions(searchParams);
-      
+
       const results = await searchRecipes(
         searchTerm,
         page,
-        Object.keys(searchOptions).length > 0 ? searchOptions : undefined
+        searchOptions && Object.keys(searchOptions).length > 0
+          ? searchOptions
+          : undefined
       );
-      
+
       // Add performance header
       const response = jsonResponse(results);
       response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
@@ -183,7 +273,10 @@ export async function GET(
       const number = parseInt(searchParams.get("number") || "10", 10);
 
       if (!query || query.trim().length < 2) {
-        return jsonResponse({ error: "Query must be at least 2 characters" }, 400);
+        return jsonResponse(
+          { error: "Query must be at least 2 characters" },
+          400
+        );
       }
 
       if (isNaN(number) || number < 1 || number > 25) {
@@ -238,15 +331,20 @@ export async function GET(
     }
 
     // Route: /api/recipes/[id]/information
-    if (path[0] === "recipes" && path[1] && /^\d+$/.test(path[1]) && path[2] === "information") {
+    if (
+      path[0] === "recipes" &&
+      path[1] &&
+      /^\d+$/.test(path[1]) &&
+      path[2] === "information"
+    ) {
       const recipeId = path[1];
-      
+
       // Validate recipe ID is a positive integer
       const recipeIdNum = parseInt(recipeId, 10);
       if (isNaN(recipeIdNum) || recipeIdNum <= 0) {
         return jsonResponse({ error: "Invalid recipe ID" }, 400);
       }
-      
+
       const options = {
         includeNutrition: searchParams.get("includeNutrition") === "true",
         addWinePairing: searchParams.get("addWinePairing") === "true",
@@ -260,15 +358,20 @@ export async function GET(
     }
 
     // Route: /api/recipes/[id]/similar
-    if (path[0] === "recipes" && path[1] && /^\d+$/.test(path[1]) && path[2] === "similar") {
+    if (
+      path[0] === "recipes" &&
+      path[1] &&
+      /^\d+$/.test(path[1]) &&
+      path[2] === "similar"
+    ) {
       const recipeId = path[1];
-      
+
       // Validate recipe ID
       const recipeIdNum = parseInt(recipeId, 10);
       if (isNaN(recipeIdNum) || recipeIdNum <= 0) {
         return jsonResponse({ error: "Invalid recipe ID" }, 400);
       }
-      
+
       const number = parseInt(searchParams.get("number") || "10", 10);
 
       if (isNaN(number) || number < 1 || number > 100) {
@@ -282,15 +385,20 @@ export async function GET(
     }
 
     // Route: /api/recipes/[id]/summary
-    if (path[0] === "recipes" && path[1] && /^\d+$/.test(path[1]) && path[2] === "summary") {
+    if (
+      path[0] === "recipes" &&
+      path[1] &&
+      /^\d+$/.test(path[1]) &&
+      path[2] === "summary"
+    ) {
       const recipeId = path[1];
-      
+
       // Validate recipe ID
       const recipeIdNum = parseInt(recipeId, 10);
       if (isNaN(recipeIdNum) || recipeIdNum <= 0) {
         return jsonResponse({ error: "Invalid recipe ID" }, 400);
       }
-      
+
       const results = await getRecipeSummary(recipeId);
       const response = jsonResponse(results);
       response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
@@ -371,7 +479,7 @@ export async function GET(
     // ============================================
     // COLLECTIONS ROUTES
     // ============================================
-    
+
     // Route: /api/collections (GET - list all)
     if (path[0] === "collections" && path.length === 1) {
       const auth = await requireAuth(request);
@@ -405,12 +513,12 @@ export async function GET(
       if (auth.response) return auth.response;
 
       const collectionId = path[1];
-      
+
       // Validate collection ID format (UUID or string)
       if (!collectionId || collectionId.trim().length === 0) {
         return jsonResponse({ error: "Invalid collection ID" }, 400);
       }
-      
+
       const collection = await prisma.recipeCollection.findFirst({
         where: {
           id: collectionId.trim(),
@@ -445,17 +553,22 @@ export async function GET(
     }
 
     // Route: /api/collections/[id]/items (GET - collection items)
-    if (path[0] === "collections" && path[1] && path[2] === "items" && path.length === 3) {
+    if (
+      path[0] === "collections" &&
+      path[1] &&
+      path[2] === "items" &&
+      path.length === 3
+    ) {
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
       const collectionId = path[1];
-      
+
       // Validate collection ID
       if (!collectionId || collectionId.trim().length === 0) {
         return jsonResponse({ error: "Invalid collection ID" }, 400);
       }
-      
+
       const collection = await prisma.recipeCollection.findFirst({
         where: { id: collectionId.trim(), userId: auth.userId! },
       });
@@ -482,7 +595,7 @@ export async function GET(
     // ============================================
     // FOOD/WINE ROUTES
     // ============================================
-    
+
     // Route: /api/food/wine/dishes
     if (path[0] === "food" && path[1] === "wine" && path[2] === "dishes") {
       const wine = searchParams.get("wine");
@@ -496,7 +609,9 @@ export async function GET(
     // Route: /api/food/wine/pairing
     if (path[0] === "food" && path[1] === "wine" && path[2] === "pairing") {
       const food = searchParams.get("food");
-      const maxPrice = searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")!) : undefined;
+      const maxPrice = searchParams.get("maxPrice")
+        ? parseFloat(searchParams.get("maxPrice")!)
+        : undefined;
 
       if (!food || food.trim().length === 0) {
         return jsonResponse({ error: "Food name is required" }, 400);
@@ -504,11 +619,17 @@ export async function GET(
 
       // Validate food parameter length
       if (food.trim().length > 100) {
-        return jsonResponse({ error: "Food name must be less than 100 characters" }, 400);
+        return jsonResponse(
+          { error: "Food name must be less than 100 characters" },
+          400
+        );
       }
 
       if (maxPrice !== undefined && (isNaN(maxPrice) || maxPrice < 0)) {
-        return jsonResponse({ error: "maxPrice must be a positive number" }, 400);
+        return jsonResponse(
+          { error: "maxPrice must be a positive number" },
+          400
+        );
       }
 
       const results = await getWinePairing(food.trim(), maxPrice);
@@ -520,7 +641,7 @@ export async function GET(
     // ============================================
     // MEAL PLAN ROUTES
     // ============================================
-    
+
     // Route: /api/meal-plan (GET)
     if (path[0] === "meal-plan" && path.length === 1) {
       const auth = await requireAuth(request);
@@ -534,7 +655,13 @@ export async function GET(
       // Validate date format
       const weekStartDate = new Date(weekStart);
       if (isNaN(weekStartDate.getTime())) {
-        return jsonResponse({ error: "Invalid week start date format. Use ISO 8601 format (YYYY-MM-DD)" }, 400);
+        return jsonResponse(
+          {
+            error:
+              "Invalid week start date format. Use ISO 8601 format (YYYY-MM-DD)",
+          },
+          400
+        );
       }
 
       const mealPlan = await prisma.mealPlan.findUnique({
@@ -546,7 +673,11 @@ export async function GET(
         },
         include: {
           meals: {
-            orderBy: [{ dayOfWeek: "asc" }, { mealType: "asc" }, { order: "asc" }],
+            orderBy: [
+              { dayOfWeek: "asc" },
+              { mealType: "asc" },
+              { order: "asc" },
+            ],
           },
         },
       });
@@ -572,7 +703,7 @@ export async function GET(
     // ============================================
     // SHOPPING LIST ROUTES
     // ============================================
-    
+
     // Route: /api/shopping-list (GET)
     if (path[0] === "shopping-list" && path.length === 1) {
       const auth = await requireAuth(request);
@@ -586,7 +717,10 @@ export async function GET(
       const response = jsonResponse(
         shoppingLists.map((list) => ({
           ...list,
-          items: typeof list.items === "string" ? JSON.parse(list.items) : list.items,
+          items:
+            typeof list.items === "string"
+              ? JSON.parse(list.items)
+              : list.items,
           createdAt: list.createdAt.toISOString(),
           updatedAt: list.updatedAt.toISOString(),
         }))
@@ -599,22 +733,26 @@ export async function GET(
     return jsonResponse({ error: "Not found" }, 404);
   } catch (error) {
     console.error("API GET Error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const statusCode = errorMessage.includes("limit") || errorMessage.includes("402") ? 402 : 500;
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const statusCode =
+      errorMessage.includes("limit") || errorMessage.includes("402")
+        ? 402
+        : 500;
+
     // Enhanced error response with request context for debugging
     return NextResponse.json(
-      { 
-        error: "Internal server error", 
+      {
+        error: "Internal server error",
         message: errorMessage,
         path: path.join("/"),
       },
-      { 
-        status: statusCode, 
+      {
+        status: statusCode,
         headers: {
           ...getCorsHeaders(),
           "Cache-Control": "no-store, no-cache, must-revalidate",
-        }
+        },
       }
     );
   }
@@ -632,7 +770,7 @@ export async function POST(
 
   const resolvedParams = await params;
   const path = resolvedParams.path || [];
-  
+
   // Parse request body with size limit protection
   let body: Record<string, unknown> = {};
   try {
@@ -640,13 +778,22 @@ export async function POST(
     // Limit request body size to 10MB
     if (bodyText.length > 10 * 1024 * 1024) {
       return new NextResponse(
-        JSON.stringify({ error: "Request body too large. Maximum size is 10MB" }),
-        { status: 413, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Request body too large. Maximum size is 10MB",
+        }),
+        {
+          status: 413,
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        }
       );
     }
     body = bodyText ? JSON.parse(bodyText) : {};
-  } catch (parseError) {
-    if (request.headers.get("content-length") && request.headers.get("content-length") !== "0") {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_parseError) {
+    if (
+      request.headers.get("content-length") &&
+      request.headers.get("content-length") !== "0"
+    ) {
       return jsonResponse({ error: "Invalid JSON in request body" }, 400);
     }
   }
@@ -664,7 +811,11 @@ export async function POST(
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
@@ -684,12 +835,19 @@ export async function POST(
         return jsonResponse(favouriteRecipe, 201);
       } catch (createError: unknown) {
         const error = createError as Error;
-        if (error.message.includes("createdAt") || error.message.includes("does not exist")) {
-          return jsonResponse({
-            error: "Database schema needs migration",
-            message: "Please run: npx prisma migrate deploy or npx prisma db push",
-            details: error.message,
-          }, 500);
+        if (
+          error.message.includes("createdAt") ||
+          error.message.includes("does not exist")
+        ) {
+          return jsonResponse(
+            {
+              error: "Database schema needs migration",
+              message:
+                "Please run: npx prisma migrate deploy or npx prisma db push",
+              details: error.message,
+            },
+            500
+          );
         }
         throw createError;
       }
@@ -701,48 +859,68 @@ export async function POST(
       if (auth.response) return auth.response;
 
       const { name, description, color } = body;
-      if (!name || !name.trim()) {
+      if (!name || typeof name !== "string" || !name.trim()) {
         return jsonResponse({ error: "Collection name is required" }, 400);
       }
 
       // Validate name length
       if (name.trim().length > 100) {
-        return jsonResponse({ error: "Collection name must be less than 100 characters" }, 400);
+        return jsonResponse(
+          { error: "Collection name must be less than 100 characters" },
+          400
+        );
       }
 
       // Validate description length if provided
-      if (description && description.trim().length > 500) {
-        return jsonResponse({ error: "Collection description must be less than 500 characters" }, 400);
+      if (
+        description &&
+        typeof description === "string" &&
+        description.trim().length > 500
+      ) {
+        return jsonResponse(
+          { error: "Collection description must be less than 500 characters" },
+          400
+        );
       }
 
       const collection = await prisma.recipeCollection.create({
         data: {
           userId: auth.userId!,
           name: name.trim(),
-          description: description?.trim() || null,
-          color: color || null,
+          description:
+            (typeof description === "string" ? description.trim() : null) ||
+            null,
+          color: (typeof color === "string" ? color : null) || null,
         },
       });
 
-      return jsonResponse({
-        ...collection,
-        createdAt: collection.createdAt.toISOString(),
-        updatedAt: collection.updatedAt.toISOString(),
-      }, 201);
+      return jsonResponse(
+        {
+          ...collection,
+          createdAt: collection.createdAt.toISOString(),
+          updatedAt: collection.updatedAt.toISOString(),
+        },
+        201
+      );
     }
 
     // Route: /api/collections/[id]/items (POST - add item)
-    if (path[0] === "collections" && path[1] && path[2] === "items" && path.length === 3) {
+    if (
+      path[0] === "collections" &&
+      path[1] &&
+      path[2] === "items" &&
+      path.length === 3
+    ) {
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
       const collectionId = path[1];
-      
+
       // Validate collection ID
       if (!collectionId || collectionId.trim().length === 0) {
         return jsonResponse({ error: "Invalid collection ID" }, 400);
       }
-      
+
       const collection = await prisma.recipeCollection.findFirst({
         where: { id: collectionId.trim(), userId: auth.userId! },
       });
@@ -752,19 +930,26 @@ export async function POST(
       }
 
       const { recipeId, recipeTitle, recipeImage, order } = body;
-      if (!recipeId || !recipeTitle) {
+      if (!recipeId || !recipeTitle || typeof recipeTitle !== "string") {
         return jsonResponse({ error: "Recipe ID and title are required" }, 400);
       }
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
       // Validate order if provided
       if (order !== undefined && (isNaN(Number(order)) || Number(order) < 0)) {
-        return jsonResponse({ error: "Order must be a non-negative number" }, 400);
+        return jsonResponse(
+          { error: "Order must be a non-negative number" },
+          400
+        );
       }
 
       const maxOrder = await prisma.collectionItem.findFirst({
@@ -778,15 +963,19 @@ export async function POST(
           collectionId,
           recipeId: recipeIdNum,
           recipeTitle: recipeTitle.trim(),
-          recipeImage,
-          order: order !== undefined ? Number(order) : (maxOrder?.order ?? 0) + 1,
+          recipeImage: typeof recipeImage === "string" ? recipeImage : null,
+          order:
+            order !== undefined ? Number(order) : (maxOrder?.order ?? 0) + 1,
         },
       });
 
-      return jsonResponse({
-        ...item,
-        createdAt: item.createdAt.toISOString(),
-      }, 201);
+      return jsonResponse(
+        {
+          ...item,
+          createdAt: item.createdAt.toISOString(),
+        },
+        201
+      );
     }
 
     // Route: /api/meal-plan (POST)
@@ -794,33 +983,71 @@ export async function POST(
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
-      const { weekStart, recipeId, recipeTitle, recipeImage, dayOfWeek, mealType, servings } = body;
+      const {
+        weekStart,
+        recipeId,
+        recipeTitle,
+        recipeImage,
+        dayOfWeek,
+        mealType,
+        servings,
+      } = body;
 
-      if (!weekStart || recipeId === undefined || !recipeTitle || dayOfWeek === undefined || !mealType) {
-        return jsonResponse({
-          error: "Week start, recipe ID, recipe title, day of week, and meal type are required",
-        }, 400);
+      if (
+        !weekStart ||
+        typeof weekStart !== "string" ||
+        recipeId === undefined ||
+        !recipeTitle ||
+        typeof recipeTitle !== "string" ||
+        dayOfWeek === undefined ||
+        !mealType
+      ) {
+        return jsonResponse(
+          {
+            error:
+              "Week start, recipe ID, recipe title, day of week, and meal type are required",
+          },
+          400
+        );
       }
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
       // Validate day of week (0-6)
       const dayOfWeekNum = Number(dayOfWeek);
-      if (isNaN(dayOfWeekNum) || dayOfWeekNum < 0 || dayOfWeekNum > 6 || !Number.isInteger(dayOfWeekNum)) {
-        return jsonResponse({ error: "Day of week must be between 0 and 6" }, 400);
+      if (
+        isNaN(dayOfWeekNum) ||
+        dayOfWeekNum < 0 ||
+        dayOfWeekNum > 6 ||
+        !Number.isInteger(dayOfWeekNum)
+      ) {
+        return jsonResponse(
+          { error: "Day of week must be between 0 and 6" },
+          400
+        );
       }
 
       // Validate servings if provided
-      if (servings !== undefined && (isNaN(Number(servings)) || Number(servings) <= 0)) {
-        return jsonResponse({ error: "Servings must be a positive number" }, 400);
+      if (
+        servings !== undefined &&
+        (isNaN(Number(servings)) || Number(servings) <= 0)
+      ) {
+        return jsonResponse(
+          { error: "Servings must be a positive number" },
+          400
+        );
       }
 
       // Validate weekStart date
-      const weekStartDate = new Date(weekStart);
+      const weekStartDate = new Date(weekStart as string);
       if (isNaN(weekStartDate.getTime())) {
         return jsonResponse({ error: "Invalid week start date format" }, 400);
       }
@@ -854,18 +1081,21 @@ export async function POST(
           mealPlanId: mealPlan.id,
           recipeId: recipeIdNum,
           recipeTitle: recipeTitle.trim(),
-          recipeImage,
+          recipeImage: typeof recipeImage === "string" ? recipeImage : null,
           dayOfWeek: dayOfWeekNum,
-          mealType,
+          mealType: typeof mealType === "string" ? mealType : "",
           servings: servings !== undefined ? Number(servings) : 1,
           order: (maxOrder?.order ?? 0) + 1,
         },
       });
 
-      return jsonResponse({
-        ...mealItem,
-        createdAt: mealItem.createdAt.toISOString(),
-      }, 201);
+      return jsonResponse(
+        {
+          ...mealItem,
+          createdAt: mealItem.createdAt.toISOString(),
+        },
+        201
+      );
     }
 
     // Route: /api/shopping-list (POST)
@@ -874,10 +1104,19 @@ export async function POST(
       if (auth.response) return auth.response;
 
       const { name, recipeIds, items } = body;
-      if (!name || !recipeIds || !Array.isArray(recipeIds) || !items) {
-        return jsonResponse({
-          error: "Name, recipe IDs array, and items are required",
-        }, 400);
+      if (
+        !name ||
+        typeof name !== "string" ||
+        !recipeIds ||
+        !Array.isArray(recipeIds) ||
+        !items
+      ) {
+        return jsonResponse(
+          {
+            error: "Name, recipe IDs array, and items are required",
+          },
+          400
+        );
       }
 
       const shoppingList = await prisma.shoppingList.create({
@@ -889,12 +1128,18 @@ export async function POST(
         },
       });
 
-      return jsonResponse({
-        ...shoppingList,
-        items: typeof shoppingList.items === "string" ? JSON.parse(shoppingList.items) : shoppingList.items,
-        createdAt: shoppingList.createdAt.toISOString(),
-        updatedAt: shoppingList.updatedAt.toISOString(),
-      }, 201);
+      return jsonResponse(
+        {
+          ...shoppingList,
+          items:
+            typeof shoppingList.items === "string"
+              ? JSON.parse(shoppingList.items)
+              : shoppingList.items,
+          createdAt: shoppingList.createdAt.toISOString(),
+          updatedAt: shoppingList.updatedAt.toISOString(),
+        },
+        201
+      );
     }
 
     // Route: /api/upload (POST)
@@ -913,23 +1158,37 @@ export async function POST(
       }
 
       // Validate base64 data size (max 10MB)
-      const base64Data = imageData.includes(",") ? imageData.split(",")[1] : imageData;
+      const base64Data = imageData.includes(",")
+        ? imageData.split(",")[1]
+        : imageData;
       const imageSizeBytes = (base64Data.length * 3) / 4;
       const maxSizeBytes = 10 * 1024 * 1024; // 10MB
-      
+
       if (imageSizeBytes > maxSizeBytes) {
-        return jsonResponse({ 
-          error: `Image size exceeds maximum of 10MB. Current size: ${(imageSizeBytes / 1024 / 1024).toFixed(2)}MB` 
-        }, 400);
+        return jsonResponse(
+          {
+            error: `Image size exceeds maximum of 10MB. Current size: ${(
+              imageSizeBytes /
+              1024 /
+              1024
+            ).toFixed(2)}MB`,
+          },
+          400
+        );
       }
 
       // Validate folder name if provided
       if (folder && (typeof folder !== "string" || folder.length > 200)) {
-        return jsonResponse({ error: "Folder name must be a string less than 200 characters" }, 400);
+        return jsonResponse(
+          { error: "Folder name must be a string less than 200 characters" },
+          400
+        );
       }
 
       const uploadOptions: { folder?: string; [key: string]: unknown } = {
-        folder: folder || `recipe-app/${auth.userId}`,
+        folder:
+          (typeof folder === "string" ? folder : null) ||
+          `recipe-app/${auth.userId}`,
       };
 
       const uploadResult = await cloudinary.uploader.upload(
@@ -951,15 +1210,28 @@ export async function POST(
       if (auth.response) return auth.response;
 
       const { recipeId, imageUrl, imageType, order, caption } = body;
-      if (!recipeId || !imageUrl || !imageType) {
-        return jsonResponse({
-          error: "Recipe ID, image URL, and image type are required",
-        }, 400);
+      if (
+        !recipeId ||
+        !imageUrl ||
+        !imageType ||
+        typeof imageUrl !== "string" ||
+        typeof imageType !== "string"
+      ) {
+        return jsonResponse(
+          {
+            error: "Recipe ID, image URL, and image type are required",
+          },
+          400
+        );
       }
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
@@ -973,14 +1245,22 @@ export async function POST(
       // Validate image type
       const validImageTypes = ["main", "step", "ingredient", "other"];
       if (!validImageTypes.includes(imageType)) {
-        return jsonResponse({ 
-          error: `Invalid image type. Must be one of: ${validImageTypes.join(", ")}` 
-        }, 400);
+        return jsonResponse(
+          {
+            error: `Invalid image type. Must be one of: ${validImageTypes.join(
+              ", "
+            )}`,
+          },
+          400
+        );
       }
 
       // Validate order if provided
       if (order !== undefined && (isNaN(Number(order)) || Number(order) < 0)) {
-        return jsonResponse({ error: "Order must be a non-negative number" }, 400);
+        return jsonResponse(
+          { error: "Order must be a non-negative number" },
+          400
+        );
       }
 
       const maxOrder = await prisma.recipeImage.findFirst({
@@ -997,18 +1277,24 @@ export async function POST(
         data: {
           userId: auth.userId!,
           recipeId: recipeIdNum,
-          imageUrl,
-          imageType,
-          order: order !== undefined ? Number(order) : (maxOrder?.order ?? 0) + 1,
-          caption: caption?.trim(),
+          imageUrl: imageUrl as string,
+          imageType: imageType as string,
+          order:
+            order !== undefined ? Number(order) : (maxOrder?.order ?? 0) + 1,
+          caption:
+            (typeof caption === "string" ? caption.trim() : undefined) ||
+            undefined,
         },
       });
 
-      return jsonResponse({
-        ...image,
-        createdAt: image.createdAt.toISOString(),
-        updatedAt: image.updatedAt.toISOString(),
-      }, 201);
+      return jsonResponse(
+        {
+          ...image,
+          createdAt: image.createdAt.toISOString(),
+          updatedAt: image.updatedAt.toISOString(),
+        },
+        201
+      );
     }
 
     // Route: /api/recipes/notes (POST)
@@ -1023,35 +1309,56 @@ export async function POST(
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
-      if (!content || !content.trim()) {
+      if (!content || typeof content !== "string" || !content.trim()) {
         return jsonResponse({ error: "Note content is required" }, 400);
       }
 
       // Validate content length
       if (content.trim().length > 10000) {
-        return jsonResponse({ error: "Note content must be less than 10,000 characters" }, 400);
+        return jsonResponse(
+          { error: "Note content must be less than 10,000 characters" },
+          400
+        );
       }
 
       // Validate title length if provided
-      if (title && title.trim().length > 200) {
-        return jsonResponse({ error: "Note title must be less than 200 characters" }, 400);
+      if (title && typeof title === "string" && title.trim().length > 200) {
+        return jsonResponse(
+          { error: "Note title must be less than 200 characters" },
+          400
+        );
       }
 
       // Validate rating
       if (rating !== undefined) {
         const ratingNum = Number(rating);
-        if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5 || !Number.isInteger(ratingNum)) {
-          return jsonResponse({ error: "Rating must be an integer between 1 and 5" }, 400);
+        if (
+          isNaN(ratingNum) ||
+          ratingNum < 1 ||
+          ratingNum > 5 ||
+          !Number.isInteger(ratingNum)
+        ) {
+          return jsonResponse(
+            { error: "Rating must be an integer between 1 and 5" },
+            400
+          );
         }
       }
 
       // Validate tags if provided
       if (tags !== undefined && (!Array.isArray(tags) || tags.length > 20)) {
-        return jsonResponse({ error: "Tags must be an array with maximum 20 items" }, 400);
+        return jsonResponse(
+          { error: "Tags must be an array with maximum 20 items" },
+          400
+        );
       }
 
       const note = await prisma.recipeNote.upsert({
@@ -1062,7 +1369,8 @@ export async function POST(
           },
         },
         update: {
-          title: title?.trim(),
+          title:
+            (typeof title === "string" ? title.trim() : undefined) || undefined,
           content: content.trim(),
           rating: rating !== undefined ? Number(rating) : undefined,
           tags: Array.isArray(tags) ? tags.slice(0, 20) : [],
@@ -1070,7 +1378,8 @@ export async function POST(
         create: {
           userId: auth.userId!,
           recipeId: recipeIdNum,
-          title: title?.trim(),
+          title:
+            (typeof title === "string" ? title.trim() : undefined) || undefined,
           content: content.trim(),
           rating: rating !== undefined ? Number(rating) : undefined,
           tags: Array.isArray(tags) ? tags.slice(0, 20) : [],
@@ -1087,7 +1396,8 @@ export async function POST(
     return jsonResponse({ error: "Not found" }, 404);
   } catch (error) {
     console.error("API POST Error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -1099,7 +1409,7 @@ export async function POST(
         headers: {
           ...getCorsHeaders(),
           "Cache-Control": "no-store, no-cache, must-revalidate",
-        }
+        },
       }
     );
   }
@@ -1117,7 +1427,7 @@ export async function PUT(
 
   const resolvedParams = await params;
   const path = resolvedParams.path || [];
-  
+
   // Parse request body with size limit protection
   let body: Record<string, unknown> = {};
   try {
@@ -1125,13 +1435,22 @@ export async function PUT(
     // Limit request body size to 10MB
     if (bodyText.length > 10 * 1024 * 1024) {
       return new NextResponse(
-        JSON.stringify({ error: "Request body too large. Maximum size is 10MB" }),
-        { status: 413, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Request body too large. Maximum size is 10MB",
+        }),
+        {
+          status: 413,
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        }
       );
     }
     body = bodyText ? JSON.parse(bodyText) : {};
-  } catch (parseError) {
-    if (request.headers.get("content-length") && request.headers.get("content-length") !== "0") {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_parseError) {
+    if (
+      request.headers.get("content-length") &&
+      request.headers.get("content-length") !== "0"
+    ) {
       return jsonResponse({ error: "Invalid JSON in request body" }, 400);
     }
   }
@@ -1151,9 +1470,13 @@ export async function PUT(
           userId: auth.userId!,
         },
         data: {
-          ...(name && { name: name.trim() }),
-          ...(description !== undefined && { description: description?.trim() }),
-          ...(color !== undefined && { color }),
+          ...(name && typeof name === "string" ? { name: name.trim() } : {}),
+          ...(description !== undefined && typeof description === "string"
+            ? { description: description.trim() }
+            : {}),
+          ...(color !== undefined
+            ? { color: typeof color === "string" ? color : null }
+            : {}),
         },
       });
 
@@ -1197,27 +1520,33 @@ export async function PUT(
 
       const updates: {
         name?: string;
-        items?: ShoppingListItem[];
+        items?: Prisma.InputJsonValue;
         isCompleted?: boolean;
       } = {};
-      
+
       if (name !== undefined) {
         if (typeof name !== "string" || name.trim().length === 0) {
-          return jsonResponse({ error: "Name must be a non-empty string" }, 400);
+          return jsonResponse(
+            { error: "Name must be a non-empty string" },
+            400
+          );
         }
         if (name.trim().length > 200) {
-          return jsonResponse({ error: "Name must be less than 200 characters" }, 400);
+          return jsonResponse(
+            { error: "Name must be less than 200 characters" },
+            400
+          );
         }
         updates.name = name.trim();
       }
-      
+
       if (items !== undefined) {
         if (!Array.isArray(items)) {
           return jsonResponse({ error: "Items must be an array" }, 400);
         }
-        updates.items = items;
+        updates.items = items as Prisma.InputJsonValue;
       }
-      
+
       if (isCompleted !== undefined) {
         if (typeof isCompleted !== "boolean") {
           return jsonResponse({ error: "isCompleted must be a boolean" }, 400);
@@ -1232,7 +1561,10 @@ export async function PUT(
 
       return jsonResponse({
         ...updated,
-        items: typeof updated.items === "string" ? JSON.parse(updated.items) : updated.items,
+        items:
+          typeof updated.items === "string"
+            ? JSON.parse(updated.items)
+            : updated.items,
         createdAt: updated.createdAt.toISOString(),
         updatedAt: updated.updatedAt.toISOString(),
       });
@@ -1241,7 +1573,8 @@ export async function PUT(
     return jsonResponse({ error: "Not found" }, 404);
   } catch (error) {
     console.error("API PUT Error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -1253,7 +1586,7 @@ export async function PUT(
         headers: {
           ...getCorsHeaders(),
           "Cache-Control": "no-store, no-cache, must-revalidate",
-        }
+        },
       }
     );
   }
@@ -1271,7 +1604,7 @@ export async function DELETE(
 
   const resolvedParams = await params;
   const path = resolvedParams.path || [];
-  
+
   // Parse request body with size limit protection
   let body: Record<string, unknown> = {};
   try {
@@ -1279,13 +1612,22 @@ export async function DELETE(
     // Limit request body size to 10MB
     if (bodyText.length > 10 * 1024 * 1024) {
       return new NextResponse(
-        JSON.stringify({ error: "Request body too large. Maximum size is 10MB" }),
-        { status: 413, headers: { ...getCorsHeaders(), "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Request body too large. Maximum size is 10MB",
+        }),
+        {
+          status: 413,
+          headers: { ...getCorsHeaders(), "Content-Type": "application/json" },
+        }
       );
     }
     body = bodyText ? JSON.parse(bodyText) : {};
-  } catch (parseError) {
-    if (request.headers.get("content-length") && request.headers.get("content-length") !== "0") {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_parseError) {
+    if (
+      request.headers.get("content-length") &&
+      request.headers.get("content-length") !== "0"
+    ) {
       return jsonResponse({ error: "Invalid JSON in request body" }, 400);
     }
   }
@@ -1303,7 +1645,11 @@ export async function DELETE(
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
@@ -1339,17 +1685,22 @@ export async function DELETE(
     }
 
     // Route: /api/collections/[id]/items (DELETE)
-    if (path[0] === "collections" && path[1] && path[2] === "items" && path.length === 3) {
+    if (
+      path[0] === "collections" &&
+      path[1] &&
+      path[2] === "items" &&
+      path.length === 3
+    ) {
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
       const collectionId = path[1];
-      
+
       // Validate collection ID
       if (!collectionId || collectionId.trim().length === 0) {
         return jsonResponse({ error: "Invalid collection ID" }, 400);
       }
-      
+
       const collection = await prisma.recipeCollection.findFirst({
         where: { id: collectionId.trim(), userId: auth.userId! },
       });
@@ -1365,7 +1716,11 @@ export async function DELETE(
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
@@ -1389,7 +1744,7 @@ export async function DELETE(
       if (auth.response) return auth.response;
 
       const { itemId } = body;
-      if (!itemId) {
+      if (!itemId || typeof itemId !== "string") {
         return jsonResponse({ error: "Item ID is required" }, 400);
       }
 
@@ -1481,7 +1836,11 @@ export async function DELETE(
 
       // Validate recipe ID
       const recipeIdNum = Number(recipeId);
-      if (isNaN(recipeIdNum) || recipeIdNum <= 0 || !Number.isInteger(recipeIdNum)) {
+      if (
+        isNaN(recipeIdNum) ||
+        recipeIdNum <= 0 ||
+        !Number.isInteger(recipeIdNum)
+      ) {
         return jsonResponse({ error: "Invalid recipe ID format" }, 400);
       }
 
@@ -1502,7 +1861,8 @@ export async function DELETE(
     return jsonResponse({ error: "Not found" }, 404);
   } catch (error) {
     console.error("API DELETE Error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -1514,7 +1874,7 @@ export async function DELETE(
         headers: {
           ...getCorsHeaders(),
           "Cache-Control": "no-store, no-cache, must-revalidate",
-        }
+        },
       }
     );
   }

@@ -13,20 +13,37 @@
  */
 
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { startOfWeek, addDays, format } from "date-fns";
-import { useMealPlan, useAddMealPlanItem, useRemoveMealPlanItem } from "../hooks/useMealPlan";
+import {
+  useMealPlan,
+  useAddMealPlanItem,
+  useRemoveMealPlanItem,
+} from "../hooks/useMealPlan";
 import { useFavouriteRecipes } from "../hooks/useRecipes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  X,
+  Plus,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { MealPlanItem, Recipe } from "../types";
 import EmptyState from "./EmptyState";
 import SkeletonMealPlanner from "./SkeletonMealPlanner";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import RecipeCard from "./RecipeCard";
 
 // Note: onRecipeClick removed - RecipeCard handles navigation internally via useNavigate
@@ -52,9 +69,17 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<MealPlanItem | null>(null);
 
-  const weekStartISO = useMemo(() => format(currentWeekStart, "yyyy-MM-dd"), [currentWeekStart]);
-  const { data: mealPlan, isLoading, error: mealPlanError } = useMealPlan(weekStartISO, true);
-  const { data: favouriteRecipes = [], error: favouritesError } = useFavouriteRecipes();
+  const weekStartISO = useMemo(
+    () => format(currentWeekStart, "yyyy-MM-dd"),
+    [currentWeekStart]
+  );
+  const {
+    data: mealPlan,
+    isLoading,
+    error: mealPlanError,
+  } = useMealPlan(weekStartISO, true);
+  const { data: favouriteRecipes = [], error: favouritesError } =
+    useFavouriteRecipes();
   const addMealPlanItem = useAddMealPlanItem();
   const removeMealPlanItem = useRemoveMealPlanItem();
 
@@ -83,7 +108,9 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
   // Get meals for a specific day and meal type
   const getMealsForDayAndType = useCallback(
     (dayOfWeek: number, mealType: string) => {
-      return getMealsForDay(dayOfWeek).filter((meal) => meal.mealType === mealType);
+      return getMealsForDay(dayOfWeek).filter(
+        (meal) => meal.mealType === mealType
+      );
     },
     [getMealsForDay]
   );
@@ -136,13 +163,10 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
     [selectedDay, selectedMealType, weekStartISO, addMealPlanItem]
   );
 
-  const handleRemoveMeal = useCallback(
-    (item: MealPlanItem) => {
-      setItemToRemove(item);
-      setRemoveDialogOpen(true);
-    },
-    []
-  );
+  const handleRemoveMeal = useCallback((item: MealPlanItem) => {
+    setItemToRemove(item);
+    setRemoveDialogOpen(true);
+  }, []);
 
   const confirmRemove = useCallback(() => {
     if (itemToRemove) {
@@ -158,13 +182,15 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
     }
   }, [itemToRemove, weekStartISO, removeMealPlanItem]);
 
-  const mealTypes: Array<{ value: "breakfast" | "lunch" | "dinner" | "snack"; label: string }> =
-    [
-      { value: "breakfast", label: "Breakfast" },
-      { value: "lunch", label: "Lunch" },
-      { value: "dinner", label: "Dinner" },
-      { value: "snack", label: "Snack" },
-    ];
+  const mealTypes: Array<{
+    value: "breakfast" | "lunch" | "dinner" | "snack";
+    label: string;
+  }> = [
+    { value: "breakfast", label: "Breakfast" },
+    { value: "lunch", label: "Lunch" },
+    { value: "dinner", label: "Dinner" },
+    { value: "snack", label: "Snack" },
+  ];
 
   if (isLoading) {
     return <SkeletonMealPlanner />;
@@ -190,7 +216,8 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="text-sm font-medium px-4">
-                {format(currentWeekStart, "MMM d")} - {format(addDays(currentWeekStart, 6), "MMM d, yyyy")}
+                {format(currentWeekStart, "MMM d")} -{" "}
+                {format(addDays(currentWeekStart, 6), "MMM d, yyyy")}
               </span>
               <Button
                 variant="outline"
@@ -217,7 +244,10 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
             </CardHeader>
             <CardContent className="space-y-3">
               {mealTypes.map((mealType) => {
-                const meals = getMealsForDayAndType(day.dayOfWeek, mealType.value);
+                const meals = getMealsForDayAndType(
+                  day.dayOfWeek,
+                  mealType.value
+                );
                 return (
                   <div key={mealType.value} className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -255,7 +285,9 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
                           <DialogHeader>
-                            <DialogTitle>Add Recipe to {mealType.label}</DialogTitle>
+                            <DialogTitle>
+                              Add Recipe to {mealType.label}
+                            </DialogTitle>
                           </DialogHeader>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             {favouriteRecipes.length === 0 ? (
@@ -289,16 +321,23 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
                           <Card className="glow-card border-purple-500/20 p-2">
                             <div className="flex items-start gap-2">
                               {meal.recipeImage && (
-                                <img
-                                  src={meal.recipeImage}
-                                  alt={meal.recipeTitle}
-                                  className="w-12 h-12 rounded object-cover"
-                                />
+                                <div className="relative flex-shrink-0 w-12 h-12 rounded overflow-hidden">
+                                  <Image
+                                    src={meal.recipeImage}
+                                    alt={meal.recipeTitle}
+                                    fill
+                                    className="object-cover rounded"
+                                  />
+                                </div>
                               )}
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium truncate">{meal.recipeTitle}</p>
+                                <p className="text-xs font-medium truncate">
+                                  {meal.recipeTitle}
+                                </p>
                                 {meal.servings > 1 && (
-                                  <p className="text-xs text-gray-400">{meal.servings} servings</p>
+                                  <p className="text-xs text-gray-400">
+                                    {meal.servings} servings
+                                  </p>
                                 )}
                               </div>
                               <Button
@@ -337,4 +376,3 @@ const MealPlanner = memo((_props: MealPlannerProps) => {
 MealPlanner.displayName = "MealPlanner";
 
 export default MealPlanner;
-

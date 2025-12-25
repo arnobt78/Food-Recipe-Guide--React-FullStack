@@ -12,10 +12,20 @@
  */
 
 import { memo, useMemo } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Recipe } from "../types";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
-import { Trash2, Clock, Users, TrendingUp, Star, DollarSign, Leaf, Wheat } from "lucide-react";
+import {
+  Trash2,
+  Clock,
+  Users,
+  TrendingUp,
+  Star,
+  DollarSign,
+  Leaf,
+  Wheat,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
@@ -123,13 +133,13 @@ const RecipeCard = memo(
       >
         <Card className="glow-card group h-full flex flex-col overflow-hidden min-h-[320px]">
           {/* Recipe Image */}
-          <div className="relative overflow-hidden rounded-t-lg">
-            <img
+          <div className="relative overflow-hidden rounded-t-lg h-48">
+            <Image
               src={recipe.image || "/hero-image.webp"}
               alt={recipe.title}
-              className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-              loading={shouldLoadEagerly ? "eager" : "lazy"}
-              decoding="async"
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              priority={shouldLoadEagerly}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
@@ -181,10 +191,12 @@ const RecipeCard = memo(
 
             {/* Decorative SVG Icon Overlay - Top Right (Bigger) */}
             <div className="absolute top-2 right-2 opacity-60 group-hover:opacity-100 transition-opacity z-10">
-              <img
+              <Image
                 src="/hamburger.svg"
                 alt="Recipe"
-                className="w-12 h-12 drop-shadow-2xl"
+                width={48}
+                height={48}
+                className="drop-shadow-2xl"
               />
             </div>
 
@@ -213,7 +225,7 @@ const RecipeCard = memo(
                   )}
                 </>
               )}
-              
+
               {/* Display readyInMinutes and servings from API if available (when addRecipeInformation=true) */}
               {recipe.readyInMinutes !== undefined && (
                 <Badge className="bg-black/60 backdrop-blur-sm text-white border-purple-400/30 text-xs px-2 py-1">
@@ -255,92 +267,137 @@ const RecipeCard = memo(
             <div className="flex flex-wrap gap-2 mt-2">
               {/* Dietary Information Badges */}
               {recipe.vegan && (
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-green-500/10 border-green-500/30 text-green-300 text-xs"
+                >
                   <Leaf className="h-3 w-3 mr-1" />
                   Vegan
                 </Badge>
               )}
               {recipe.vegetarian && !recipe.vegan && (
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-green-500/10 border-green-500/30 text-green-300 text-xs"
+                >
                   <Leaf className="h-3 w-3 mr-1" />
                   Vegetarian
                 </Badge>
               )}
               {recipe.glutenFree && (
-                <Badge variant="outline" className="bg-amber-500/10 border-amber-500/30 text-amber-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-500/10 border-amber-500/30 text-amber-300 text-xs"
+                >
                   <Wheat className="h-3 w-3 mr-1" />
                   Gluten Free
                 </Badge>
               )}
               {recipe.dairyFree && (
-                <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-blue-500/10 border-blue-500/30 text-blue-300 text-xs"
+                >
                   Dairy Free
                 </Badge>
               )}
               {recipe.ketogenic && (
-                <Badge variant="outline" className="bg-orange-500/10 border-orange-500/30 text-orange-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-orange-500/10 border-orange-500/30 text-orange-300 text-xs"
+                >
                   Keto
                 </Badge>
               )}
               {recipe.veryHealthy && (
-                <Badge variant="outline" className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-xs"
+                >
                   Very Healthy
                 </Badge>
               )}
               {recipe.cheap && (
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-green-500/10 border-green-500/30 text-green-300 text-xs"
+                >
                   <DollarSign className="h-3 w-3 mr-1" />
                   Budget Friendly
                 </Badge>
               )}
               {recipe.veryPopular && (
-                <Badge variant="outline" className="bg-yellow-500/10 border-yellow-500/30 text-yellow-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-500/10 border-yellow-500/30 text-yellow-300 text-xs"
+                >
                   <Star className="h-3 w-3 mr-1 fill-yellow-400" />
                   Popular
                 </Badge>
               )}
               {/* Price per serving if available */}
               {recipe.pricePerServing !== undefined && (
-                <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-300 text-xs">
-                  <DollarSign className="h-3 w-3 mr-1" />
-                  ${(recipe.pricePerServing / 100).toFixed(2)}/serving
+                <Badge
+                  variant="outline"
+                  className="bg-purple-500/10 border-purple-500/30 text-purple-300 text-xs"
+                >
+                  <DollarSign className="h-3 w-3 mr-1" />$
+                  {(recipe.pricePerServing / 100).toFixed(2)}/serving
                 </Badge>
               )}
               {/* Spoonacular Score if available */}
               {recipe.spoonacularScore !== undefined && (
-                <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-blue-500/10 border-blue-500/30 text-blue-300 text-xs"
+                >
                   <Star className="h-3 w-3 mr-1 fill-blue-400" />
                   {Math.round(recipe.spoonacularScore)}%
                 </Badge>
               )}
               {/* Health Score if available */}
               {recipe.healthScore !== undefined && (
-                <Badge variant="outline" className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-xs"
+                >
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Health: {Math.round(recipe.healthScore)}
                 </Badge>
               )}
               {/* Whole30 if available */}
               {recipe.whole30 && (
-                <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-500/10 border-purple-500/30 text-purple-300 text-xs"
+                >
                   Whole30
                 </Badge>
               )}
               {/* Low FODMAP if available */}
               {recipe.lowFodmap && (
-                <Badge variant="outline" className="bg-teal-500/10 border-teal-500/30 text-teal-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-teal-500/10 border-teal-500/30 text-teal-300 text-xs"
+                >
                   Low FODMAP
                 </Badge>
               )}
               {/* Sustainable if available */}
               {recipe.sustainable && (
-                <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-green-500/10 border-green-500/30 text-green-300 text-xs"
+                >
                   Sustainable
                 </Badge>
               )}
               {/* Weight Watcher Points if available */}
               {recipe.weightWatcherSmartPoints !== undefined && (
-                <Badge variant="outline" className="bg-cyan-500/10 border-cyan-500/30 text-cyan-300 text-xs">
+                <Badge
+                  variant="outline"
+                  className="bg-cyan-500/10 border-cyan-500/30 text-cyan-300 text-xs"
+                >
                   {recipe.weightWatcherSmartPoints} WW Points
                 </Badge>
               )}
@@ -348,7 +405,11 @@ const RecipeCard = memo(
               {recipe.cuisines && recipe.cuisines.length > 0 && (
                 <>
                   {recipe.cuisines.slice(0, 2).map((cuisine, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-indigo-500/10 border-indigo-500/30 text-indigo-300 text-xs">
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="bg-indigo-500/10 border-indigo-500/30 text-indigo-300 text-xs"
+                    >
                       {cuisine}
                     </Badge>
                   ))}
@@ -358,7 +419,11 @@ const RecipeCard = memo(
               {recipe.diets && recipe.diets.length > 0 && (
                 <>
                   {recipe.diets.slice(0, 2).map((diet, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-pink-500/10 border-pink-500/30 text-pink-300 text-xs">
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="bg-pink-500/10 border-pink-500/30 text-pink-300 text-xs"
+                    >
                       {diet}
                     </Badge>
                   ))}
@@ -368,7 +433,11 @@ const RecipeCard = memo(
               {recipe.dishTypes && recipe.dishTypes.length > 0 && (
                 <>
                   {recipe.dishTypes.slice(0, 2).map((dishType, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-violet-500/10 border-violet-500/30 text-violet-300 text-xs">
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="bg-violet-500/10 border-violet-500/30 text-violet-300 text-xs"
+                    >
                       {dishType}
                     </Badge>
                   ))}
@@ -378,7 +447,11 @@ const RecipeCard = memo(
               {recipe.occasions && recipe.occasions.length > 0 && (
                 <>
                   {recipe.occasions.slice(0, 1).map((occasion, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-rose-500/10 border-rose-500/30 text-rose-300 text-xs">
+                    <Badge
+                      key={idx}
+                      variant="outline"
+                      className="bg-rose-500/10 border-rose-500/30 text-rose-300 text-xs"
+                    >
                       {occasion}
                     </Badge>
                   ))}

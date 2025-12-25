@@ -12,6 +12,7 @@
  */
 
 import { memo } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import {
@@ -53,9 +54,11 @@ const Navbar = memo(() => {
             transition={{ delay: 0.1 }}
             className="flex items-center gap-3"
           >
-            <img
+            <Image
               src="/chef.svg"
               alt="Recipe App Logo"
+              width={40}
+              height={40}
               className="w-8 h-8 md:w-10 md:h-10"
             />
             <h1 className="text-xl md:text-2xl font-bold gradient-text">
@@ -135,11 +138,14 @@ const Navbar = memo(() => {
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-purple-500/20">
                 <div className="flex items-center gap-2 text-sm text-gray-300">
                   {user?.picture && (
-                    <img
-                      src={user.picture}
-                      alt={user.name || "User"}
-                      className="w-6 h-6 rounded-full"
-                    />
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden">
+                      <Image
+                        src={user.picture}
+                        alt={user.name || "User"}
+                        fill
+                        className="object-cover rounded-full"
+                      />
+                    </div>
                   )}
                   <span className="hidden md:inline">
                     {user?.name || user?.email}
