@@ -1,4 +1,4 @@
-# Food Recipe Spoonacular Guide - Next.js,.js PostgreSQL FullStack Project
+# Food Recipe Spoonacular Guide - Next.js, PostgreSQL FullStack Project
 
 A modern React + TypeScript frontend for a full-stack recipe management application. This UI lets users search for recipes, view details, and manage favourites, with a beautiful, responsive design and seamless backend integration.
 
