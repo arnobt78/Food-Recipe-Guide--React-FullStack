@@ -70,7 +70,7 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <title>Recipe App | Discover & Save Your Favourite Recipes</title>
         <meta
@@ -82,7 +82,10 @@ export default function RootLayout({
           content="Recipe App, React, Node.js, PostgreSQL, Spoonacular, Food, Cooking, Favourites, Full Stack, Next.js, TypeScript"
         />
         <meta name="author" content="Arnob Mahmud" />
-        <meta property="og:title" content="Recipe App | Discover & Save Your Favourite Recipes" />
+        <meta
+          property="og:title"
+          content="Recipe App | Discover & Save Your Favourite Recipes"
+        />
         <meta
           property="og:description"
           content="A modern full-stack recipe app to search, view, and save your favourite recipes."
@@ -90,7 +93,10 @@ export default function RootLayout({
         <meta property="og:image" content="/hero-image.webp" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Recipe App | Discover & Save Your Favourite Recipes" />
+        <meta
+          name="twitter:title"
+          content="Recipe App | Discover & Save Your Favourite Recipes"
+        />
         <meta
           name="twitter:description"
           content="A modern full-stack recipe app to search, view, and save your favourite recipes."
@@ -98,20 +104,17 @@ export default function RootLayout({
         <meta name="twitter:image" content="/hero-image.webp" />
         <link rel="icon" type="image/svg+xml" href="/vite.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link
-          rel="preload"
-          as="image"
-          href="/hero-image.webp"
-        />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <ErrorBoundary>
           <Auth0Provider
             domain={auth0Domain}
             clientId={auth0ClientId}
             authorizationParams={{
               redirect_uri:
-                typeof window !== "undefined" ? window.location.origin : "",
+                typeof window !== "undefined"
+                  ? window.location.origin
+                  : "http://localhost:3000",
               audience: auth0Audience,
             }}
             cacheLocation="localstorage"

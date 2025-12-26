@@ -143,6 +143,7 @@ const Navbar = memo(() => {
                         src={user.picture}
                         alt={user.name || "User"}
                         fill
+                        sizes="24px"
                         className="object-cover rounded-full"
                       />
                     </div>

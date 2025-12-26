@@ -11,23 +11,30 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   // Image optimization
-  images: {
-    domains: ['spoonacular.com', 'cdn.spoonacular.com'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.spoonacular.com',
+      images: {
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: '**.spoonacular.com',
+          },
+          {
+            protocol: 'https',
+            hostname: 'res.cloudinary.com',
+          },
+          {
+            protocol: 'https',
+            hostname: 'ik.imagekit.io',
+          },
+          {
+            protocol: 'https',
+            hostname: '**.googleusercontent.com',
+          },
+          {
+            protocol: 'https',
+            hostname: 'lh3.googleusercontent.com',
+          },
+        ],
       },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'ik.imagekit.io',
-      },
-    ],
-  },
   // Environment variables that should be available on the client
   env: {
     // These will be available via process.env in both server and client

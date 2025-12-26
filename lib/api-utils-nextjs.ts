@@ -65,14 +65,18 @@ export async function verifyAuth0Token(token: string | undefined): Promise<AuthR
 
     const payload = JSON.parse(
       Buffer.from(parts[1], "base64url").toString("utf-8")
-    ) as { sub?: string; aud?: string; iss?: string; exp?: number };
+    ) as { sub?: string; aud?: string | string[]; iss?: string; exp?: number };
 
     if (payload.exp && payload.exp < Date.now() / 1000) {
       return { userId: null, isValid: false, error: "Token expired" };
     }
 
-    if (payload.aud && payload.aud !== auth0Audience) {
-      return { userId: null, isValid: false, error: "Invalid audience" };
+    // Handle audience validation - aud can be a string or array
+    if (payload.aud) {
+      const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+      if (!audiences.includes(auth0Audience)) {
+        return { userId: null, isValid: false, error: "Invalid audience" };
+      }
     }
 
     if (payload.iss && !payload.iss.includes(auth0Domain)) {

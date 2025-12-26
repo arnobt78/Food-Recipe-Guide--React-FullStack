@@ -682,8 +682,19 @@ export async function GET(
         },
       });
 
+      // Return empty meal plan structure if not found (graceful handling)
       if (!mealPlan) {
-        return jsonResponse({ error: "Meal plan not found" }, 404);
+        const emptyMealPlan = {
+          id: null,
+          userId: auth.userId!,
+          weekStart: weekStartDate.toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          meals: [],
+        };
+        const response = jsonResponse(emptyMealPlan);
+        response.headers.set("X-Response-Time", `${Date.now() - startTime}ms`);
+        return response;
       }
 
       const response = jsonResponse({

@@ -712,7 +712,9 @@ export const getFavouriteRecipes = async (): Promise<FavouriteRecipesResponse> =
   
   // fetch() handles relative paths automatically using current origin
   // If API_URL is set, apiPath is already a full URL
-  const response = await fetch(apiPath);
+  const response = await fetch(apiPath, {
+    headers: await getAuthHeaders(),
+  });
 
   if (!response.ok) {
     const errorMessage = await extractErrorMessage(
@@ -1168,9 +1170,6 @@ export const getMealPlan = async (weekStart: string): Promise<MealPlan> => {
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error("User not authenticated");
-    }
-    if (response.status === 404) {
-      throw new Error("Meal plan not found");
     }
     const errorMessage = await extractErrorMessage(
       response,
