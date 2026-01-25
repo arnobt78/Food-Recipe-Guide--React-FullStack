@@ -1,11 +1,14 @@
 /**
  * Login Dialog Component
  *
- * Custom NextAuth login dialog with Google OAuth
+ * Custom NextAuth login dialog with test account dropdown and Google OAuth
  * Features:
  * - ShadCN UI Dialog component
+ * - Test account dropdown (auto-fills email/password)
+ * - Email/password authentication (Credentials provider)
  * - Google OAuth sign-in
  * - Dark theme compatible
+ * - No page refresh - UI updates automatically
  *
  * Following DEVELOPMENT_RULES.md: Reusable component, ShadCN UI, TypeScript
  */
@@ -13,7 +16,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +28,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface LoginDialogProps {
@@ -32,11 +48,110 @@ interface LoginDialogProps {
 }
 
 /**
+ * Test account credentials
+ * Matches DROPDOWN_TEST_CREDENTIALS_DOCS.md
+ */
+const testAccounts: Record<string, { email: string; password: string }> = {
+  "guest-user": {
+    email: "test@user.com",
+    password: "12345678",
+  },
+  "guest-admin": {
+    email: "test@admin.com",
+    password: "12345678",
+  },
+};
+
+/**
+ * Form validation schema
+ */
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
+/**
  * Login Dialog Component
- * Displays Google OAuth sign-in button
+ * Displays test account dropdown, email/password form, and Google OAuth button
  */
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedRole, setSelectedRole] = useState<string>("");
+
+  /**
+   * Form setup with react-hook-form
+   */
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  /**
+   * Handle test account selection from dropdown
+   * Auto-fills email and password fields
+   */
+  const handleRoleSelect = useCallback(
+    (value: string) => {
+      if (value === "clear") {
+        setSelectedRole("");
+        setValue("email", "");
+        setValue("password", "");
+        reset();
+      } else {
+        setSelectedRole(value);
+        const account = testAccounts[value];
+        if (account) {
+          setValue("email", account.email);
+          setValue("password", account.password);
+        }
+      }
+    },
+    [setValue, reset]
+  );
+
+  /**
+   * Handle email/password sign-in (Credentials provider)
+   */
+  const handleCredentialsSignIn = useCallback(
+    async (data: LoginFormData) => {
+      setIsLoading(true);
+      try {
+        const result = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          toast.error("Invalid email or password. Please try again.");
+          setIsLoading(false);
+        } else if (result?.ok) {
+          // Success - close dialog and refresh session
+          toast.success("Signed in successfully!");
+          onOpenChange(false);
+          router.refresh(); // Refresh to update session in UI
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Credentials sign-in error:", error);
+        toast.error("Failed to sign in. Please try again.");
+        setIsLoading(false);
+      }
+    },
+    [router, onOpenChange]
+  );
 
   /**
    * Handle Google OAuth sign-in
@@ -68,13 +183,109 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit(handleCredentialsSignIn)} className="space-y-6 mt-4">
+          {/* Test Account Dropdown */}
+          <div className="space-y-2">
+            <Label htmlFor="test-account-select" className="text-white">
+              Test Accounts To Login With
+            </Label>
+            <Select
+              key={`select-${selectedRole || "empty"}`}
+              value={selectedRole || undefined}
+              onValueChange={handleRoleSelect}
+            >
+              <SelectTrigger
+                id="test-account-select"
+                className="border-gray-600 bg-transparent text-white focus:ring-purple-500/50"
+              >
+                <SelectValue placeholder="Select Role Based Test Account" />
+              </SelectTrigger>
+              <SelectContent className="border-gray-600 bg-gray-800">
+                <SelectItem
+                  value="guest-user"
+                  className="cursor-pointer text-white focus:bg-gray-700 focus:text-white"
+                >
+                  Guest User
+                </SelectItem>
+                <SelectItem
+                  value="guest-admin"
+                  className="cursor-pointer text-white focus:bg-gray-700 focus:text-white"
+                >
+                  Guest Admin
+                </SelectItem>
+                {selectedRole && (
+                  <SelectItem
+                    value="clear"
+                    className="cursor-pointer text-gray-400 opacity-60 focus:bg-gray-700 focus:text-gray-400"
+                  >
+                    Clear Selection
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Email Input */}
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-white">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className="border-gray-600 bg-transparent text-white placeholder:text-gray-500 focus:ring-purple-500/50"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-400">{errors.email.message}</p>
+            )}
+          </div>
+
+          {/* Password Input */}
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-white">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              className="border-gray-600 bg-transparent text-white placeholder:text-gray-500 focus:ring-purple-500/50"
+              {...register("password")}
+            />
+            {errors.password && (
+              <p className="text-sm text-red-400">{errors.password.message}</p>
+            )}
+          </div>
+
+          {/* Sign In Button */}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full border-white/20 bg-purple-600/80 backdrop-blur-sm text-white hover:bg-purple-600 hover:text-white disabled:opacity-50"
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
+          </Button>
+
+          {/* Separator */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-transparent px-2 text-white/60">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
           {/* Google OAuth Button */}
           <Button
             type="button"
             disabled={isLoading}
             onClick={handleGoogleSignIn}
-            className="w-full border-white/20 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:text-white"
+            className="w-full border-white/20 bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:text-white disabled:opacity-50"
           >
             <svg
               className="mr-2 h-4 w-4"
@@ -88,7 +299,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             </svg>
             {isLoading ? "Signing in..." : "Continue with Google"}
           </Button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

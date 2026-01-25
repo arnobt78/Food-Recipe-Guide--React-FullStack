@@ -53,7 +53,9 @@ openssl rand -base64 32
 Add these to Vercel Dashboard → Your Project → Settings → Environment Variables:
 
 **Required for NextAuth v5:**
+
 ```bash
+
 GOOGLE_ID=your-google-client-id-here
 GOOGLE_SECRET=your-google-client-secret-here
 AUTH_SECRET=your-auth-secret-here
