@@ -188,6 +188,7 @@ export default function RootLayout({
                   ? window.location.origin
                   : "http://localhost:3000",
               audience: auth0Audience,
+              scope: "openid profile email offline_access", // Include offline_access for refresh tokens
             }}
             cacheLocation="localstorage"
             useRefreshTokens={true}

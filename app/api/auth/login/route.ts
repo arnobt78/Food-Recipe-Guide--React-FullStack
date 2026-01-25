@@ -55,13 +55,14 @@ export async function POST(request: NextRequest) {
     // Use password-realm grant type which works even without default connection configured
     // This is more reliable than the basic "password" grant type
     // See: https://auth0.com/docs/get-started/authentication-and-authorization-flow/resource-owner-password-flow
+    // Include "offline_access" scope to get refresh_token for silent token renewal
     const requestBody: Record<string, string> = {
       grant_type: "http://auth0.com/oauth/grant-type/password-realm", // Use password-realm grant type
       username: email,
       password: password,
       client_id: auth0ClientId,
       realm: auth0Connection, // Use "realm" parameter instead of "connection" for password-realm grant
-      scope: "openid profile email",
+      scope: "openid profile email offline_access", // Include offline_access to get refresh_token
     };
 
     // Only include audience if it's set (some Auth0 configurations don't require it)
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       client_id: auth0ClientId,
       realm: auth0Connection,
       audience: auth0Audience || "not set",
-      scope: "openid profile email",
+      scope: "openid profile email offline_access",
     });
 
     try {
@@ -160,14 +161,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Return tokens (access token, id token, etc.)
+      // Return tokens (access token, id token, refresh token, etc.)
       // The frontend will handle storing these and setting up the session
       return jsonResponse({
         success: true,
         access_token: tokenData.access_token,
         id_token: tokenData.id_token,
+        refresh_token: tokenData.refresh_token, // Include refresh_token for silent token renewal
         token_type: tokenData.token_type,
         expires_in: tokenData.expires_in,
+        scope: tokenData.scope, // Include scope to match what was granted
       });
     } catch (fetchError) {
       // Capture network errors in Sentry

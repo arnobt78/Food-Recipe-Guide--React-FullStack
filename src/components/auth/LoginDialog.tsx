@@ -235,13 +235,15 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
             // Auth0 SDK cache format - must match exactly what SDK expects
             // The SDK expects: { body: {...}, expiresAt: number, decodedToken: {...} }
+            // Include refresh_token if available (required for silent token renewal)
             const auth0Cache = {
               body: {
                 access_token: data.access_token,
                 id_token: data.id_token,
+                refresh_token: data.refresh_token || undefined, // Include refresh_token if available
                 expires_in: expiresIn,
                 token_type: data.token_type || "Bearer",
-                scope: "openid profile email",
+                scope: data.scope || "openid profile email offline_access", // Use actual scope from response
               },
               expiresAt: expiresAt,
               decodedToken: {
@@ -481,13 +483,15 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                   }
 
                   // Auth0 SDK cache format - must match exactly what SDK expects
+                  // Include refresh_token if available (required for silent token renewal)
                   const auth0Cache = {
                     body: {
                       access_token: loginData.access_token,
                       id_token: loginData.id_token,
+                      refresh_token: loginData.refresh_token || undefined, // Include refresh_token if available
                       expires_in: expiresIn,
                       token_type: loginData.token_type || "Bearer",
-                      scope: "openid profile email",
+                      scope: loginData.scope || "openid profile email offline_access", // Use actual scope from response
                     },
                     expiresAt: expiresAt,
                     decodedToken: {
