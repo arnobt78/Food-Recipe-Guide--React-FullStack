@@ -19,8 +19,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   Dialog,
   DialogContent,
@@ -58,7 +56,6 @@ type RegisterFormData = z.infer<typeof registerSchema>;
  * Displays name, email, password form, and Google OAuth button
  */
 export function RegisterDialog({ open, onOpenChange, onSwitchToLogin }: RegisterDialogProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   /**
@@ -80,20 +77,47 @@ export function RegisterDialog({ open, onOpenChange, onSwitchToLogin }: Register
 
   /**
    * Handle email/password sign-up
-   * Note: For now, this creates a test account. In production, you'd call a signup API.
+   * Creates a new user account in the database via API
    */
   const handleCredentialsSignUp = useCallback(
     async (data: RegisterFormData) => {
       setIsLoading(true);
       try {
-        // TODO: Implement actual signup API call
-        // For now, show success and redirect to login
-        toast.success("Account created successfully! Please sign in.");
+        // Call signup API to create user in database
+        const response = await fetch("/api/auth/signup-nextauth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: data.email,
+            password: data.password,
+            name: data.name,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          // Handle error response
+          const errorMessage = result.message || result.error || "Failed to create account. Please try again.";
+          toast.error(errorMessage);
+          setIsLoading(false);
+          return;
+        }
+
+        // Success - show success message and redirect to login
+        toast.success(result.message || "Account created successfully! Please sign in.");
         reset();
         onOpenChange(false);
-        if (onSwitchToLogin) {
-          onSwitchToLogin();
-        }
+        
+        // Switch to login dialog after a short delay
+        setTimeout(() => {
+          if (onSwitchToLogin) {
+            onSwitchToLogin();
+          }
+        }, 500);
+        
         setIsLoading(false);
       } catch (error) {
         console.error("Sign-up error:", error);
@@ -101,7 +125,7 @@ export function RegisterDialog({ open, onOpenChange, onSwitchToLogin }: Register
         setIsLoading(false);
       }
     },
-    [router, onOpenChange, onSwitchToLogin, reset]
+    [onOpenChange, onSwitchToLogin, reset]
   );
 
   /**

@@ -10,6 +10,8 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import { prisma } from "./lib/prisma";
+import bcrypt from "bcryptjs";
 
 /**
  * Test account credentials (for development/testing)
@@ -48,7 +50,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        // Check against test accounts
+        // First, check database for user with password
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: email.trim().toLowerCase() },
+          });
+
+          if (dbUser && dbUser.password) {
+            // User exists in database - verify password
+            const isValidPassword = await bcrypt.compare(password, dbUser.password);
+            if (isValidPassword) {
+              return {
+                id: dbUser.id,
+                email: dbUser.email,
+                name: dbUser.name || undefined,
+                image: dbUser.picture || undefined,
+              };
+            }
+            // Password doesn't match
+            return null;
+          }
+        } catch (error) {
+          console.error("Database authentication error:", error);
+          // Fall through to test accounts if database check fails
+        }
+
+        // Fallback: Check against hardcoded test accounts (for development/testing)
         const account = Object.values(testAccounts).find(
           (acc) => acc.email === email
         );

@@ -28,6 +28,7 @@
     "@tanstack/react-query": "^5.90.12",
     "@upstash/qstash": "^2.8.4",
     "@upstash/redis": "^1.36.1",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.8.0",
     "clsx": "^2.1.1",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
