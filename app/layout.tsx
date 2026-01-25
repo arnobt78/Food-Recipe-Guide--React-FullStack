@@ -2,7 +2,7 @@
 
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Auth0Provider } from "@auth0/auth0-react";
+import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
 import { PostHogProvider } from "@/components/providers/PostHogProvider";
@@ -117,12 +117,9 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Auth0 Configuration
- * Uses environment variables (Next.js uses process.env.NEXT_PUBLIC_* for client-side)
+ * NextAuth Configuration
+ * Uses environment variables for Google OAuth
  */
-const auth0Domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "";
-const auth0ClientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "";
-const auth0Audience = process.env.NEXT_PUBLIC_AUTH0_AUDIENCE || "";
 
 // Setup app utilities (only on client side)
 // This will be called after component mounts
@@ -179,20 +176,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ErrorBoundary>
           <PostHogProvider>
-          <Auth0Provider
-            domain={auth0Domain}
-            clientId={auth0ClientId}
-            authorizationParams={{
-              redirect_uri:
-                typeof window !== "undefined"
-                  ? window.location.origin
-                  : "http://localhost:3000",
-              audience: auth0Audience,
-              scope: "openid profile email offline_access", // Include offline_access for refresh tokens
-            }}
-            cacheLocation="localstorage"
-            useRefreshTokens={true}
-          >
+          <SessionProvider>
             <QueryClientProvider client={queryClient}>
               {children}
               <Toaster
@@ -208,7 +192,7 @@ export default function RootLayout({
                 }}
               />
             </QueryClientProvider>
-          </Auth0Provider>
+          </SessionProvider>
           </PostHogProvider>
         </ErrorBoundary>
       </body>

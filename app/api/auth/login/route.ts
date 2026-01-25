@@ -94,6 +94,16 @@ export async function POST(request: NextRequest) {
 
       const tokenData = await tokenResponse.json();
 
+      // Debug: Log what Auth0 actually returns
+      console.log("Auth0 token response:", {
+        has_access_token: !!tokenData.access_token,
+        has_id_token: !!tokenData.id_token,
+        has_refresh_token: !!tokenData.refresh_token,
+        scope: tokenData.scope,
+        expires_in: tokenData.expires_in,
+        token_type: tokenData.token_type,
+      });
+
       if (!tokenResponse.ok) {
         // Log the full error for debugging
         console.log("Auth0 login error details:", {

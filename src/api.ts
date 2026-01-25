@@ -946,15 +946,15 @@ export async function getAuthHeaders(): Promise<HeadersInit> {
 
   // Get user ID from localStorage (set by AuthContext when user logs in)
   // SSR-safe: Only access localStorage on client side
-  const userId = typeof window !== "undefined" ? localStorage.getItem("auth0_user_id") : null;
+  const userId = typeof window !== "undefined" ? localStorage.getItem("user_id") : null;
   if (userId) {
     headers["x-user-id"] = userId;
   }
 
-  // Get Auth0 access token (JWT) for proper authentication
+  // Get access token for proper authentication
   // Backend should validate this token instead of relying solely on x-user-id
   // SSR-safe: Only access localStorage on client side
-  const accessToken = typeof window !== "undefined" ? localStorage.getItem("auth0_access_token") : null;
+  const accessToken = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
