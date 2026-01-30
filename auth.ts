@@ -89,14 +89,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * JWT callback - runs whenever a JWT is accessed
      * Used to add custom claims to the token
      */
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       // Initial sign in - add user info to token
       if (user) {
         // Use user.id if provided (from Credentials provider), otherwise generate one
         token.id = user.id || user.email?.split("@")[0] + "_" + Date.now() || `user_${Date.now()}`;
         token.email = user.email;
         token.name = user.name;
-        token.picture = user.image;
+        // Set picture from user.image (OAuth providers set this from profile)
+        if (user.image) {
+          token.picture = user.image;
+        }
+      }
+      
+      // For Google OAuth, also check the profile for picture (backup)
+      if (profile && account?.provider === "google") {
+        const googleProfile = profile as { picture?: string };
+        if (googleProfile.picture) {
+          token.picture = googleProfile.picture;
+        }
       }
       
       // Add access token from OAuth provider (only for OAuth providers, not Credentials)
@@ -114,10 +125,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      * Used to customize the session object returned to client
      */
     async session({ session, token }) {
-      // Add user ID and access token to session
+      // Add user ID, image, and access token to session
       if (session.user) {
         session.user.id = token.id;
         session.user.accessToken = token.accessToken;
+        // Pass the picture from token to session (for Google OAuth profile image)
+        if (token.picture) {
+          session.user.image = token.picture as string;
+        }
       }
       
       return session;

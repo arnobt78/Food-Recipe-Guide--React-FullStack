@@ -166,10 +166,16 @@ export function LoginDialog({
 
   /**
    * Handle Google OAuth sign-in
+   * Sets auth flag in localStorage before redirect to prevent Login flicker on return
    */
   const handleGoogleSignIn = useCallback(async () => {
     setIsLoading(true);
     try {
+      // Set flag before redirect so Navbar shows skeleton when returning from OAuth
+      if (typeof window !== "undefined") {
+        localStorage.setItem("navbar_was_authenticated", "true");
+        localStorage.setItem("oauth_login_pending", "true");
+      }
       await signIn("google", {
         callbackUrl: window.location.origin,
         redirect: true,
@@ -177,6 +183,11 @@ export function LoginDialog({
       // Note: signIn will redirect, so we won't reach here on success
     } catch (error) {
       console.error("Google sign-in error:", error);
+      // Clear the flags on error since login failed
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("navbar_was_authenticated");
+        localStorage.removeItem("oauth_login_pending");
+      }
       toast.error("Failed to sign in with Google. Please try again.");
       setIsLoading(false);
     }

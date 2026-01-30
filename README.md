@@ -1,5 +1,11 @@
 # Food Recipe Spoonacular Guide - Next.js, PostgreSQL FullStack Project
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-18.3.1-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.1-green)](https://www.postgresql.org/)
+
 A modern React + TypeScript frontend for a full-stack recipe management application. This UI lets users search for recipes, view details, and manage favourites, with a beautiful, responsive design and seamless backend integration.
 
 - **Live-Demo:** [https://recipe-smart.vercel.app/](https://recipe-smart.vercel.app/)

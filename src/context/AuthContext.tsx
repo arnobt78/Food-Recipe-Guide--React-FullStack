@@ -28,7 +28,7 @@ interface AuthContextType {
   isLoading: boolean;
   userId: string | null; // User ID
   loginWithRedirect: () => Promise<void>;
-  logout: (options?: { returnTo?: string }) => void;
+  logout: () => Promise<void>;
   getAccessTokenSilently: () => Promise<string>;
 }
 
@@ -107,11 +107,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Logout function
-  const logout = async (options?: { returnTo?: string }) => {
-    await nextAuthSignOut({
-      callbackUrl: options?.returnTo || window.location.origin,
-    });
+  // Logout function - uses redirect: false for smooth UI transition without page refresh
+  const logout = async () => {
+    // Clear local storage immediately
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("access_token");
+    }
+    // Reset PostHog user
+    resetUser();
+    // Sign out without redirect for smooth UI transition
+    await nextAuthSignOut({ redirect: false });
   };
 
   // Get access token (for API calls)
