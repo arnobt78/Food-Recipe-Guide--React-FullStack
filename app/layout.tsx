@@ -18,9 +18,11 @@ if (typeof window !== "undefined") {
   // Suppress Next.js error overlay for expected errors (ad blockers, network failures)
   // These errors are not real application errors and shouldn't break the UI
   const originalErrorHandler: OnErrorEventHandler | null = window.onerror;
-  const originalRejectionHandler: ((this: Window, ev: PromiseRejectionEvent) => unknown) | null = window.onunhandledrejection;
+  const originalRejectionHandler:
+    | ((this: Window, ev: PromiseRejectionEvent) => unknown)
+    | null = window.onunhandledrejection;
 
-  window.onerror = function(message, source, lineno, colno, error) {
+  window.onerror = function (message, source, lineno, colno, error) {
     const errorMessage = String(message || "");
     const errorType = error?.name || "";
     const errorStack = error?.stack || "";
@@ -34,12 +36,11 @@ if (typeof window !== "undefined") {
       errorMessage.includes("PostHog") ||
       errorMessage.includes("Sentry") ||
       (errorType === "TypeError" && errorStack.includes("fetch")) ||
-      (errorStack && (
-        errorStack.includes("posthog") ||
-        errorStack.includes("sentry") ||
-        errorStack.includes("PostHog") ||
-        errorStack.includes("Sentry")
-      ))
+      (errorStack &&
+        (errorStack.includes("posthog") ||
+          errorStack.includes("sentry") ||
+          errorStack.includes("PostHog") ||
+          errorStack.includes("Sentry")))
     ) {
       // Silently suppress - return true to prevent default error handling
       return true;
@@ -52,7 +53,7 @@ if (typeof window !== "undefined") {
     return false;
   };
 
-  window.onunhandledrejection = function(event: PromiseRejectionEvent) {
+  window.onunhandledrejection = function (event: PromiseRejectionEvent) {
     const errorMessage = String(event.reason?.message || event.reason || "");
     const errorStack = String(event.reason?.stack || "");
 
@@ -138,7 +139,11 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      style={{ scrollbarGutter: "stable" }}
+    >
       <head>
         <title>Recipe App | Discover & Save Your Favourite Recipes</title>
         <meta
@@ -176,23 +181,23 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ErrorBoundary>
           <PostHogProvider>
-          <SessionProvider>
-            <QueryClientProvider client={queryClient}>
-              {children}
-              <Toaster
-                position="bottom-right"
-                richColors
-                closeButton
-                toastOptions={{
-                  style: {
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    color: "hsl(var(--foreground))",
-                  },
-                }}
-              />
-            </QueryClientProvider>
-          </SessionProvider>
+            <SessionProvider>
+              <QueryClientProvider client={queryClient}>
+                {children}
+                <Toaster
+                  position="bottom-right"
+                  richColors
+                  closeButton
+                  toastOptions={{
+                    style: {
+                      background: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      color: "hsl(var(--foreground))",
+                    },
+                  }}
+                />
+              </QueryClientProvider>
+            </SessionProvider>
           </PostHogProvider>
         </ErrorBoundary>
       </body>

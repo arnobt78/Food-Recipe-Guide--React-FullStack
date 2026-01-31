@@ -5,7 +5,7 @@
  * - Toggle button system for Search/Weather modes
  * - Smooth fade-in animations with framer-motion
  * - SearchInput with Advanced Filters (Search mode)
- * - Compact weather message (Weather mode) - full results shown below hero
+ * - Weather-Based Suggestions (Weather mode)
  * - Responsive design for mobile/desktop
  * - Memoized for performance
  *
@@ -14,17 +14,20 @@
 
 "use client";
 
-import { memo, useCallback, Suspense, lazy, FormEvent } from "react";
+import { memo, useState, useCallback, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, CloudSun } from "lucide-react";
+import { Search, CloudSun, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SearchInput from "../search/SearchInput";
+import { Card, CardContent, CardHeader } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { AdvancedFilterOptions } from "../../types";
+// Components imported directly for instant display
+// Loading states for API data are handled internally by each component
+import AdvancedFilters from "../filters/AdvancedFilters";
+import WeatherBasedSuggestions from "../weather/WeatherBasedSuggestions";
 
-// Lazy load components for code splitting
-const AdvancedFilters = lazy(() => import("../filters/AdvancedFilters"));
-
-export type SearchMode = "search" | "weather";
+type SearchMode = "search" | "weather";
 
 interface HeroSearchSectionProps {
   searchTerm: string;
@@ -34,8 +37,6 @@ interface HeroSearchSectionProps {
   onFiltersChange: (filters: AdvancedFilterOptions) => void;
   onApplyFilters: () => void;
   isSearching: boolean;
-  activeMode: SearchMode;
-  onModeChange: (mode: SearchMode) => void;
   className?: string;
 }
 
@@ -43,7 +44,6 @@ interface HeroSearchSectionProps {
  * Hero Search Section Component (Memoized for performance)
  *
  * Displays toggle buttons for Search/Weather modes with smooth transitions
- * Only shows search bar in hero - weather results are displayed below hero
  */
 const HeroSearchSection = memo(
   ({
@@ -54,21 +54,21 @@ const HeroSearchSection = memo(
     onFiltersChange,
     onApplyFilters,
     isSearching,
-    activeMode,
-    onModeChange,
     className = "",
   }: HeroSearchSectionProps) => {
+    const [activeMode, setActiveMode] = useState<SearchMode>("search");
+
     // Handle mode change with smooth transition
     const handleModeChange = useCallback((mode: SearchMode) => {
-      onModeChange(mode);
-    }, [onModeChange]);
+      setActiveMode(mode);
+    }, []);
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
-        className={cn("max-w-4xl mx-auto px-4", className)}
+        className={cn("max-w-7xl mx-auto px-4", className)}
       >
         {/* Toggle Buttons */}
         <div className="flex justify-center mb-6">
@@ -97,42 +97,63 @@ const HeroSearchSection = memo(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="space-y-4"
             >
-              {/* Search Input and Advanced Filters */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex-1 min-w-[250px]">
-                  <SearchInput
-                    value={searchTerm}
-                    onChange={onSearchTermChange}
-                    onSubmit={onSearchSubmit}
-                    placeholder="What would you like to cook today?"
-                  />
-                </div>
-                <Suspense
-                  fallback={
-                    <div className="h-10 w-32 bg-slate-800/50 rounded-xl animate-pulse" />
-                  }
-                >
-                  <AdvancedFilters
-                    filters={searchFilters}
-                    onFiltersChange={onFiltersChange}
-                    onApplyFilters={onApplyFilters}
-                    isSearching={isSearching}
-                  />
-                </Suspense>
-              </div>
+              {/* Search Card - Consistent style with Weather Magic */}
+              <Card className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500/30 backdrop-blur-sm rounded-xl">
+                <CardHeader>
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Search className="h-7 w-7 text-purple-400" />
+                      </div>
+                      <div>
+                        <span className="block text-lg sm:text-xl font-semibold text-white">
+                          Recipe Search
+                        </span>
+                        <span className="block text-sm text-gray-400">
+                          Find your perfect recipe
+                        </span>
+                      </div>
+                    </div>
+                    <AdvancedFilters
+                      filters={searchFilters}
+                      onFiltersChange={onFiltersChange}
+                      onApplyFilters={onApplyFilters}
+                      isSearching={isSearching}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* AI Search Hint */}
+                  <p className="text-center text-sm text-purple-300/80">
+                    <Sparkles className="inline h-4 w-4 mr-1" />
+                    Try &quot;quick healthy dinner&quot; or &quot;pasta with
+                    tomatoes&quot; for AI-powered search
+                  </p>
 
-              {/* Quick Tips */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-center text-sm text-gray-400"
-              >
-                Try &quot;quick healthy dinner&quot; or &quot;pasta with
-                tomatoes&quot; for AI-powered search
-              </motion.p>
+                  {/* Search Input */}
+                  <form onSubmit={onSearchSubmit} className="flex gap-3">
+                    <Input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => onSearchTermChange(e.target.value)}
+                      placeholder="Enter ingredients, dish name, or describe what you want..."
+                      className="flex-1 bg-slate-900/30 backdrop-blur-sm border-purple-500/30 text-white text-base placeholder:text-gray-500 rounded-xl focus:border-purple-400 focus:ring-purple-400/20"
+                    />
+                    <Button
+                      type="submit"
+                      disabled={isSearching || !searchTerm.trim()}
+                      className="bg-gradient-to-r from-purple-500/70 via-purple-500/50 to-pink-500/30 hover:from-purple-500/80 hover:via-purple-500/60 hover:to-pink-500/40 text-white px-6 rounded-xl"
+                    >
+                      {isSearching ? (
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        "Search"
+                      )}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </motion.div>
           ) : (
             <motion.div
@@ -141,21 +162,8 @@ const HeroSearchSection = memo(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="text-center space-y-3"
             >
-              {/* Weather Mode Message */}
-              <div className="flex items-center justify-center gap-3">
-                <div className="p-3 bg-blue-500/20 rounded-xl">
-                  <CloudSun className="h-6 w-6 text-blue-400" />
-                </div>
-                <div className="text-left">
-                  <p className="text-white font-medium">Weather-Based Suggestions</p>
-                  <p className="text-sm text-gray-400">Recipes perfect for your current weather</p>
-                </div>
-              </div>
-              <p className="text-sm text-blue-300/80">
-                Scroll down to see weather details and recipe recommendations
-              </p>
+              <WeatherBasedSuggestions className="w-full mx-auto" />
             </motion.div>
           )}
         </AnimatePresence>

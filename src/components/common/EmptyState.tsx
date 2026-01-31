@@ -10,7 +10,7 @@
  */
 
 import { memo } from "react";
-import Image from "next/image";
+// import Image from "next/image";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -22,6 +22,7 @@ interface EmptyStateProps {
   className?: string;
   subtitle?: string;
   fullWidth?: boolean; // Make card full width instead of max-w-md
+  compact?: boolean; // Reduce height for dialogs/smaller areas
 }
 
 /**
@@ -37,25 +38,26 @@ interface EmptyStateProps {
 const EmptyState = memo(
   ({
     message,
-    icon = "/diet.svg",
+    // icon = "/diet.svg",
     className = "",
     subtitle,
     fullWidth = false,
+    compact = false,
   }: EmptyStateProps) => {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex items-center justify-center min-h-[400px] ${className}`}
+        className={`flex items-center justify-center ${compact ? "py-4" : "min-h-[400px]"} ${className}`}
       >
         <Card
           className={`glow-card border-purple-500/30 ${
             fullWidth ? "w-full" : "max-w-9xl w-full"
           } bg-gradient-to-br from-slate-800/50 to-purple-900/30`}
         >
-          <CardContent className="p-4 sm:p-6 md:p-8 text-center">
+          <CardContent className={`${compact ? "p-4" : "p-4 sm:p-6 md:p-8"} text-center`}>
             {/* Icon */}
-            <motion.div
+            {/* <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -73,14 +75,14 @@ const EmptyState = memo(
                   />
                 </div>
               </div>
-            </motion.div>
+            </motion.div> */}
 
             {/* Title */}
             <motion.h3
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3"
+              className="text-lg sm:text-xl font-bold text-white"
             >
               {message}
             </motion.h3>
@@ -91,7 +93,7 @@ const EmptyState = memo(
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-sm sm:text-base text-gray-400 mb-6 px-2 xl:px-0"
+                className="text-sm sm:text-md text-gray-400 mb-6 px-2 xl:px-0"
               >
                 {subtitle}
               </motion.p>
@@ -104,17 +106,17 @@ const EmptyState = memo(
               transition={{ delay: 0.5 }}
               className="flex flex-wrap justify-center gap-2 sm:gap-3"
             >
-              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
+              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
                 <Search className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <span className="hidden sm:inline">Search Recipes</span>
                 <span className="sm:hidden">Search</span>
               </Badge>
-              <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
+              <Badge className="bg-pink-500/20 text-pink-300 border-pink-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
                 <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 <span className="hidden sm:inline">Add Favourites</span>
                 <span className="sm:hidden">Favourites</span>
               </Badge>
-              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
+              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3.5 py-1.5 text-xs sm:text-sm">
                 <BookOpen className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 Explore
               </Badge>
