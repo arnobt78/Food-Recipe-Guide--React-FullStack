@@ -136,7 +136,7 @@ const RecipeModifications = memo(
                       Copy All
                     </Button>
                   </div>
-                  <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                  <div className="space-y-2">
                     {scaledIngredients.map((ing, index) => (
                       <Card
                         key={index}
@@ -231,7 +231,7 @@ const RecipeModifications = memo(
                             Copy All
                           </Button>
                         </div>
-                        <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-2">
                           {dietaryModification.modifiedIngredients.map(
                             (ing, index) => (
                               <Card
@@ -323,7 +323,7 @@ const RecipeModifications = memo(
                             Copy All
                           </Button>
                         </div>
-                        <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                        <div className="space-y-2">
                           {simplification.simplifiedIngredients.map(
                             (ing, index) => (
                               <Card
