@@ -56,10 +56,10 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
       onClick={handleCardClick}
       className="cursor-pointer"
     >
-      <Card className="glow-card group h-full flex flex-col overflow-hidden min-h-[400px]">
+      <Card className="group rounded-[28px] h-full flex flex-col overflow-hidden min-h-[400px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] transition hover:border-teal-300/50">
         {/* Featured Image */}
         {post.featuredImage && (
-          <div className="relative overflow-hidden rounded-t-lg h-48">
+          <div className="relative overflow-hidden rounded-t-[28px] h-48">
             <Image
               src={post.featuredImage.url}
               alt={post.featuredImage.title || post.title}
@@ -73,7 +73,7 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
             {/* Category Badge */}
             {post.category && (
               <div className="absolute top-3 left-3">
-                <Badge className="bg-purple-500/80 backdrop-blur-sm text-white border-purple-400/30">
+                <Badge className="bg-teal-500/80 backdrop-blur-sm text-white border-teal-400/30">
                   {post.category}
                 </Badge>
               </div>
@@ -86,14 +86,14 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
           {/* Category Badge (if no image) */}
           {!post.featuredImage && post.category && (
             <div className="mb-3">
-              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+              <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/30">
                 {post.category}
               </Badge>
             </div>
           )}
 
           {/* Title */}
-          <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-purple-300 transition-colors">
+          <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-teal-300 transition-colors">
             {post.title}
           </h3>
 
@@ -116,8 +116,8 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                  <User className="h-4 w-4 text-purple-300" />
+                <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center">
+                  <User className="h-4 w-4 text-teal-300" />
                 </div>
               )}
               <div className="flex flex-col">
@@ -130,7 +130,7 @@ const BlogPostCard = memo(({ post, index = 0, onClick }: BlogPostCardProps) => {
                 </span>
               </div>
             </div>
-            <ArrowRight className="h-5 w-5 text-purple-400 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="h-5 w-5 text-teal-400 group-hover:translate-x-1 transition-transform" />
           </div>
 
           {/* Tags */}

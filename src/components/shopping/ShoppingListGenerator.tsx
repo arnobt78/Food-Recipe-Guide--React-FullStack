@@ -321,7 +321,11 @@ const ShoppingListGenerator = memo((_props: ShoppingListGeneratorProps) => {
           Your Shopping Lists
         </h3>
         {displayShoppingLists.length === 0 ? (
-          <EmptyState message="No shopping lists yet. Create one above!" />
+          <EmptyState
+            message="No Shopping Lists Yet"
+            subtitle="Create a shopping list above to organize your ingredients! 🛒✨"
+            fullWidth={true}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AnimatePresence>

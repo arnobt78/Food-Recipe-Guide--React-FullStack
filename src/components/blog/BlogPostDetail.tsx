@@ -39,7 +39,7 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
 
   if (isLoading) {
     return (
-      <Card className={`glow-card border-purple-500/30 ${className}`}>
+      <Card className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] ${className}`}>
         <CardHeader>
           <Skeleton className="h-10 w-3/4 mb-4" />
           <Skeleton className="h-6 w-1/2" />
@@ -56,13 +56,13 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
 
   if (error) {
     return (
-      <Card className={`glow-card border-red-500/30 ${className}`}>
+      <Card className={`group rounded-[28px] border border-red-400/30 bg-gradient-to-br from-red-500/25 via-red-500/10 to-red-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(239,68,68,0.35)] ${className}`}>
         <CardContent className="p-6 text-center">
           <p className="text-red-400 mb-4">{error.message}</p>
           <div className="flex gap-3 justify-center">
             <Button
               onClick={() => refetch()}
-              className="bg-red-500/20 hover:bg-red-500/30 text-red-300 border-red-500/30"
+              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-gradient-to-r from-red-500/70 via-red-500/50 to-red-500/30 px-4 py-2 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(239,68,68,0.45)] transition duration-200 hover:border-red-300/40 hover:from-red-500/80 hover:via-red-500/60 hover:to-red-500/40 backdrop-blur-sm"
             >
               Retry
             </Button>
@@ -94,15 +94,15 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
   const timeAgo = formatDistanceToNow(publishedDate, { addSuffix: true });
 
   return (
-    <Card className={`glow-card border-purple-500/30 overflow-hidden ${className}`}>
+    <Card className={`group rounded-[28px] border border-teal-400/30 bg-gradient-to-br from-teal-500/25 via-teal-500/10 to-teal-500/5 backdrop-blur-sm shadow-[0_30px_80px_rgba(20,184,166,0.35)] overflow-hidden ${className}`}>
       {/* Header with Back Button */}
-      <CardHeader className="relative bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-b border-purple-500/30">
+      <CardHeader className="relative bg-gradient-to-r from-teal-900/50 to-cyan-900/50 border-b border-teal-500/30 rounded-t-[28px]">
         <div className="flex items-start justify-between gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push("/blog")}
-            className="hover:bg-purple-500/20 text-gray-400 hover:text-purple-400"
+            className="hover:bg-teal-500/20 text-gray-400 hover:text-teal-400"
             aria-label="Back to blog"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -114,7 +114,7 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
         {/* Category Badge */}
         {post.category && (
           <div className="mb-4">
-            <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+            <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/30">
               {post.category}
             </Badge>
           </div>
@@ -138,8 +138,8 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                  <User className="h-5 w-5 text-purple-300" />
+                <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
+                  <User className="h-5 w-5 text-teal-300" />
                 </div>
               )}
               <div>
@@ -175,16 +175,16 @@ const BlogPostDetail = memo(({ slug, className = "" }: BlogPostDetailProps) => {
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-slate-700/50">
+          <div className="mt-8 pt-6 border-t border-teal-700/50">
             <div className="flex items-center gap-2 mb-4">
-              <Tag className="h-5 w-5 text-purple-400" />
+              <Tag className="h-5 w-5 text-teal-400" />
               <h3 className="text-lg font-semibold text-white">Tags</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag) => (
                 <Badge
                   key={tag}
-                  className="bg-slate-700/50 text-slate-300 border-slate-600/30"
+                  className="bg-teal-500/20 text-teal-300 border-teal-500/30"
                 >
                   {tag}
                 </Badge>
