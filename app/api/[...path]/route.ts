@@ -439,6 +439,50 @@ export async function GET(
     }
 
     // ============================================
+    // DEBUG ROUTES (for diagnosing user ID issues)
+    // ============================================
+
+    // Route: /api/debug/auth-info (GET) - Shows current session info and helps diagnose user ID mismatches
+    if (path[0] === "debug" && path[1] === "auth-info") {
+      const auth = await requireAuth(request);
+      if (auth.response) return auth.response;
+
+      // Get user from database
+      const dbUser = await prisma.user.findUnique({
+        where: { id: auth.userId! },
+        select: { id: true, email: true, name: true, createdAt: true },
+      });
+
+      // Get all users with same email prefix (to detect duplicates)
+      const allUsers = await prisma.user.findMany({
+        select: { id: true, email: true, name: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      });
+
+      // Get count of data for this user
+      const favCount = await prisma.favouriteRecipes.count({ where: { userId: auth.userId! } });
+      const collCount = await prisma.recipeCollection.count({ where: { userId: auth.userId! } });
+      const shopCount = await prisma.shoppingList.count({ where: { userId: auth.userId! } });
+      const mealCount = await prisma.mealPlan.count({ where: { userId: auth.userId! } });
+
+      return jsonResponse({
+        currentSession: {
+          userId: auth.userId,
+          foundInDb: !!dbUser,
+          dbUser: dbUser,
+        },
+        userDataCounts: {
+          favourites: favCount,
+          collections: collCount,
+          shoppingLists: shopCount,
+          mealPlans: mealCount,
+        },
+        allUsersInDb: allUsers,
+        _note: "If you see multiple users with similar emails, the data might be split between them.",
+      });
+    }
+
+    // ============================================
     // RECIPE ROUTES
     // ============================================
 
@@ -1720,10 +1764,16 @@ Return ONLY valid JSON, no other text.`;
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
+      // Debug logging to help diagnose user ID mismatches
+      console.log(`[DEBUG] GET /api/recipes/favourite - User ID: ${auth.userId}`);
+
       const recipes = await prisma.favouriteRecipes.findMany({
         where: { userId: auth.userId! },
-        select: { recipeId: true },
+        select: { recipeId: true, userId: true },
       });
+
+      // Debug: Log what we found
+      console.log(`[DEBUG] Found ${recipes.length} favourites for user ${auth.userId}`);
 
       const recipeIds = recipes.map((r) => r.recipeId.toString());
       if (recipeIds.length === 0) {
@@ -2415,6 +2465,9 @@ Return ONLY a JSON array of search query strings, like: ["soup", "stew", "curry"
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
 
+      // Debug logging
+      console.log(`[DEBUG] GET /api/collections - User ID: ${auth.userId}`);
+
       const collections = await prisma.recipeCollection.findMany({
         where: { userId: auth.userId! },
         include: {
@@ -2714,6 +2767,9 @@ Return ONLY a JSON array of search query strings, like: ["soup", "stew", "curry"
     if (path[0] === "shopping-list" && path.length === 1) {
       const auth = await requireAuth(request);
       if (auth.response) return auth.response;
+
+      // Debug logging
+      console.log(`[DEBUG] GET /api/shopping-list - User ID: ${auth.userId}`);
 
       const shoppingLists = await prisma.shoppingList.findMany({
         where: { userId: auth.userId! },
