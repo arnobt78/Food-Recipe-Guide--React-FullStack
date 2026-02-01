@@ -64,6 +64,18 @@ const WeatherWidget = memo(
       }
     }, [data, isLoading, error, onWeatherDataChange]);
 
+    // Auto-refetch when showing cached "API Limit Reached" - better UX
+    // This ensures fresh data is fetched when user switches to weather mode
+    useEffect(() => {
+      if (location && data?.apiLimitReached && !isLoading) {
+        // Cached API limit response - auto-refetch to check if keys are available now
+        queryClient.invalidateQueries({
+          queryKey: ["weather", "suggestions", location],
+        });
+        refetch();
+      }
+    }, [location, data?.apiLimitReached, isLoading, queryClient, refetch]);
+
     // Get user's geolocation
     useEffect(() => {
       if (useGeolocation && navigator.geolocation) {
