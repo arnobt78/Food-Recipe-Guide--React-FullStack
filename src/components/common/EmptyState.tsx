@@ -48,7 +48,7 @@ const EmptyState = memo(
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex items-center justify-center ${compact ? "py-4" : "min-h-[400px]"} ${className}`}
+        className={`flex items-center justify-center ${compact ? "py-4" : "py-6"} ${className}`}
       >
         <Card
           className={`glow-card border-purple-500/30 ${
