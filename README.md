@@ -1,12 +1,15 @@
-# Food Recipe Spoonacular Guide - Next.js, PostgreSQL FullStack Project
+# Recipe Guide | Recipe Discovery & Management Platform - Next.js, PostgreSQL, Redis, Spoonacular API, Contentful CMS FullStack Project
+
+A modern full-stack recipe app to search, save, and manage recipes—with favourites, collections, meal planning, AI-powered analysis, and more. Built for learning and production use.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-18.3.1-blue)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue)](https://www.typescriptlang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.1-green)](https://www.postgresql.org/)
-
-A modern React + TypeScript frontend for a full-stack recipe management application. This UI lets users search for recipes, view details, and manage favourites, with a beautiful, responsive design and seamless backend integration.
+[![Prisma](https://img.shields.io/badge/Prisma-6.15-2D3748)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-NeonDB-336791)](https://www.postgresql.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind CSS-3.4-38B2AC)](https://tailwindcss.com/)
+[![Spoonacular API](https://img.shields.io/badge/Spoonacular-API-22C55E)](https://spoonacular.com/food-api)
 
 - **Live-Demo:** [https://recipe-smart.vercel.app/](https://recipe-smart.vercel.app/)
 
@@ -14,296 +17,466 @@ A modern React + TypeScript frontend for a full-stack recipe management applicat
 
 ## Table of Contents
 
-- [Project Overview](#project-overview)
+- [Overview](#overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
-- [Features & Functionality](#features--functionality)
-- [Environment Variables (.env)](#environment-variables-env)
-- [Setup & Usage](#setup--usage)
-- [Code Walkthrough](#code-walkthrough)
-  - [App.tsx](#apptsx)
-  - [api.ts](#apits)
-  - [RecipeCard.tsx](#recipecardtsx)
-  - [RecipeModal.tsx](#recipemodaltsx)
-  - [types.ts](#typests)
-  - [App.css](#appcss)
-- [Reusing Components & Extending](#reusing-components--extending)
-- [Tech Stack & Keywords](#tech-stack--keywords)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [How to Run](#how-to-run)
+- [Project Walkthrough](#project-walkthrough)
+- [API Endpoints](#api-endpoints)
+- [Components & Reusability](#components--reusability)
+- [Routes](#routes)
+- [Database Schema](#database-schema)
+- [Keywords](#keywords)
 - [Conclusion](#conclusion)
-- [Happy Coding! 🎉](#happy-coding-)
 
 ---
 
-## Project Overview
+## Overview
 
-This frontend is the user interface for the Recipe App. It allows users to:
+**Recipe Guide** is a modern full-stack recipe discovery and management platform built with Next.js 15, React 18, TypeScript, and PostgreSQL. It integrates the **Spoonacular API** for recipe data and provides features like recipe search, favourites, collections, meal planning, shopping lists, AI-powered recipe analysis, blog (Contentful CMS), and business insights.
 
-- Search for recipes using keywords
-- View recipe summaries in a modal
-- Add or remove favourite recipes
-- Switch between search and favourites tabs
-- Enjoy a responsive, modern UI
+The app follows a **server/client component separation** architecture, uses **NextAuth v5** for authentication (Google OAuth + email/password), and is deployment-ready for **Vercel** with optional **Redis** (Upstash) caching and **Sentry** error tracking.
+
+---
+
+## Features
+
+| Feature               | Description                                                                |
+| --------------------- | -------------------------------------------------------------------------- |
+| **Recipe Search**     | Advanced search with filters (cuisine, diet, type, ingredients)            |
+| **Recipe Details**    | Full recipe info, nutrition, taste data, instructions, wine pairing        |
+| **Favourites**        | Save and manage favourite recipes (auth required)                          |
+| **Collections**       | Create custom recipe collections with custom ordering                      |
+| **Meal Planning**     | Weekly meal planner with breakfast, lunch, dinner, snack slots             |
+| **Shopping List**     | Auto-generated shopping lists from recipes                                 |
+| **AI Features**       | Recipe analysis, recommendations, modifications, weather-based suggestions |
+| **Blog**              | Contentful CMS–powered blog posts                                          |
+| **Business Insights** | Platform statistics, AI predictions, trends                                |
+| **API Status**        | Real-time API endpoint health monitoring                                   |
+| **API Docs**          | Endpoint documentation grouped by category                                 |
+
+---
+
+## Technology Stack
+
+| Layer            | Technology                                               |
+| ---------------- | -------------------------------------------------------- |
+| **Framework**    | Next.js 15 (App Router)                                  |
+| **UI**           | React 18, Tailwind CSS, ShadCN UI (Radix), Framer Motion |
+| **Language**     | TypeScript 5.7                                           |
+| **Database**     | PostgreSQL (NeonDB), Prisma ORM                          |
+| **Auth**         | NextAuth v5 (JWT, Google OAuth, Credentials)             |
+| **Caching**      | Upstash Redis (optional)                                 |
+| **Recipe Data**  | Spoonacular API                                          |
+| **CMS**          | Contentful                                               |
+| **Image Upload** | Cloudinary                                               |
+| **Monitoring**   | Sentry, PostHog                                          |
+| **Hosting**      | Vercel                                                   |
 
 ---
 
 ## Project Structure
 
 ```bash
-recipe-app-frontend/
-├── public/
-│   ├── hero-image.webp
-│   └── vite.svg
+recipe-spoonacular/
+├── app/                      # Next.js App Router
+│   ├── api/                  # API routes
+│   │   ├── [...path]/        # Unified API handler (recipes, collections, etc.)
+│   │   ├── auth/             # NextAuth, login, signup
+│   │   ├── jobs/              # Scheduled jobs (QStash)
+│   │   └── test/              # Test endpoints (Redis)
+│   ├── api-docs/              # API documentation page
+│   ├── api-status/            # API status monitoring page
+│   ├── blog/                  # Blog (list + [slug])
+│   ├── business-insights/     # Platform analytics
+│   ├── recipe/[id]/           # Recipe detail page
+│   ├── layout.tsx             # Root layout + metadata
+│   └── page.tsx               # Home page
 ├── src/
-│   ├── App.tsx           # Main app logic and UI
-│   ├── App.css           # Styles
-│   ├── api.ts            # API integration
-│   ├── main.tsx          # Entry point
-│   ├── types.ts          # TypeScript types
-│   └── components/
-│       ├── RecipeCard.tsx   # Recipe card component
-│       └── RecipeModal.tsx  # Modal for recipe summary
-├── index.html
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
+│   ├── components/           # React components
+│   │   ├── analysis/          # AI recipe analysis
+│   │   ├── auth/              # Login, Register dialogs
+│   │   ├── blog/              # Blog card, list, detail
+│   │   ├── collections/       # Collection manager, cards
+│   │   ├── common/            # ErrorBoundary, EmptyState, etc.
+│   │   ├── filters/           # Advanced filters, presets
+│   │   ├── hero/              # Hero search section
+│   │   ├── insights/          # Business insights dashboard
+│   │   ├── layout/            # Navbar, Footer, TabNavigation
+│   │   ├── meal-planning/     # Meal planner
+│   │   ├── pages/             # Page-level client components
+│   │   ├── recipes/           # RecipeCard, RecipeDetailCard, etc.
+│   │   ├── search/            # SearchInput, metadata
+│   │   ├── shopping/          # Shopping list generator
+│   │   ├── skeletons/         # Loading skeletons
+│   │   ├── status/            # API status dashboard
+│   │   ├── ui/                # ShadCN UI primitives
+│   │   ├── videos/            # Recipe video player
+│   │   └── weather/           # Weather-based suggestions
+│   ├── config/               # Upload presets, config
+│   ├── context/              # AuthContext, RecipeContext
+│   ├── hooks/                # useRecipes, useCollections, etc.
+│   ├── lib/                  # posthog, utils
+│   ├── utils/                # Helpers, mock data, generators
+│   └── types.ts              # Shared TypeScript types
+├── lib/                      # Server-side utilities
+│   ├── api-key-tracker.ts    # Spoonacular API key rotation
+│   ├── api-utils-nextjs.ts   # CORS, auth helpers
+│   ├── prisma.ts             # Prisma client
+│   ├── recipe-api.ts         # Spoonacular API calls
+│   ├── redis-cache.ts        # Redis caching
+│   └── redis.ts              # Upstash Redis client
+├── prisma/
+│   └── schema.prisma         # Database schema
+├── public/                   # Static assets
+├── auth.ts                   # NextAuth configuration
+└── instrumentation.ts       # Sentry instrumentation
 ```
 
 ---
 
-## Features & Functionality
+## Getting Started
 
-- **Recipe Search**: Search recipes by keyword, paginated results
-- **Recipe Details**: View recipe summary in a modal with clickable links
-- **Favourites**: Add/remove recipes to your favourites, view in a separate tab
-- **Responsive UI**: Works on desktop and mobile
-- **Modern UX**: Animated modal, hover effects, empty state messages
-- **TypeScript**: Type safety throughout
-- **API Integration**: Connects to backend REST API
+### Prerequisites
+
+- **Node.js** 18+
+- **npm** or **pnpm**
+- **PostgreSQL** (e.g. [NeonDB](https://neon.tech/))
+- **Spoonacular API key** (free tier: [spoonacular.com/food-api](https://spoonacular.com/food-api))
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/arnobt78/recipe-spoonacular.git
+cd recipe-spoonacular
+
+# Install dependencies
+npm install
+
+# Copy environment file and fill in values
+cp .env.example .env.local
+
+# Generate Prisma client
+npm run prisma:generate
+
+# Push schema to database (creates tables)
+npm run prisma:push
+
+# Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## Environment Variables (.env)
+## Environment Variables
 
-Create a `.env` file in the frontend root with:
+Create a `.env.local` file in the project root. Use `.env.example` as a template.
+
+### Required (Minimum to Run)
 
 ```env
-# Backend API base URL (e.g., http://localhost:5005 or your deployed backend)
-NEXT_PUBLIC_API_URL=
+# Spoonacular API (required for recipe data)
+API_KEY=your_spoonacular_api_key_here
+# Optional: additional keys for rotation (API_KEY_2, API_KEY_3, etc.)
+
+# Database (PostgreSQL)
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 ```
 
-- **NEXT_PUBLIC_API_URL**: The base URL for your backend API. Leave empty to use relative paths (works with Next.js automatically). For production, use your deployed backend URL if needed.
+### Authentication (NextAuth)
+
+```env
+# NextAuth v5
+AUTH_SECRET=your-secret-here          # Generate: openssl rand -base64 32
+AUTH_URL=http://localhost:3000       # Production: https://your-domain.com
+
+# Google OAuth (optional)
+GOOGLE_ID=your-google-client-id
+GOOGLE_SECRET=your-google-client-secret
+# Or: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+```
+
+### Optional Services
+
+```env
+# Redis (Upstash) - for caching
+UPSTASH_REDIS_URL=https://xxx.upstash.io
+UPSTASH_REDIS_TOKEN=your-token
+
+# Contentful CMS - for blog
+CMS_SPACE_ID=your-space-id
+CMS_DELIVERY_TOKEN=your-delivery-token
+CMS_ENVIRONMENT=master
+
+# Cloudinary - for image uploads
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# AI / LLM (OpenRouter, Gemini, etc.)
+OPENROUTER_API_KEY=your-key
+GOOGLE_GEMINI_API_KEY=your-key
+GROQ_LLAMA_API_KEY=your-key
+HUGGING_FACE_INFERENCE_API_KEY=your-key
+
+# Weather (OpenWeather) - for weather-based suggestions
+OPENWEATHER_API_KEY=your-key
+
+# Email (Resend or Brevo) - for recipe sharing
+RESEND_TOKEN=your-token
+BREVO_API_KEY=your-key
+EMAIL_SENDER_ADDRESS=noreply@yourdomain.com
+
+# Sentry - error tracking
+SENTRY_DSN=your-sentry-dsn
+
+# PostHog - analytics
+NEXT_PUBLIC_POSTHOG_KEY=your-key
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
+# App URL (for metadata, links)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+### How to Obtain Environment Variables
+
+| Variable                      | How to Get                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| `API_KEY`                     | [Spoonacular](https://spoonacular.com/food-api) → Sign up, copy API key                       |
+| `DATABASE_URL`                | [NeonDB](https://neon.tech/) → Create project, copy connection string                         |
+| `AUTH_SECRET`                 | Run `openssl rand -base64 32`                                                                 |
+| `GOOGLE_ID` / `GOOGLE_SECRET` | [Google Cloud Console](https://console.cloud.google.com/) → Credentials → OAuth 2.0 Client ID |
+| `UPSTASH_REDIS_*`             | [Upstash](https://upstash.com/) → Create Redis database                                       |
+| `CMS_*`                       | [Contentful](https://www.contentful.com/) → Space Settings → API keys                         |
+| `CLOUDINARY_*`                | [Cloudinary](https://cloudinary.com/) → Dashboard                                             |
+| `SENTRY_DSN`                  | [Sentry](https://sentry.io/) → Create project, copy DSN                                       |
 
 ---
 
-## Setup & Usage
+## How to Run
 
-1. **Install dependencies:**
-
-   ```bash
-   npm install
-   ```
-
-2. **Configure environment:**
-
-   - Create a `.env` file as shown above.
-
-3. **Start the frontend app:**
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in browser:**
-   - Visit [http://localhost:5173](http://localhost:5173) (default Vite port)
+| Command                   | Description                                         |
+| ------------------------- | --------------------------------------------------- |
+| `npm run dev`             | Start dev server (Turbo) at `http://localhost:3000` |
+| `npm run dev:webpack`     | Start dev server (Webpack)                          |
+| `npm run build`           | Production build                                    |
+| `npm run start`           | Start production server                             |
+| `npm run lint`            | Run ESLint                                          |
+| `npm run prisma:generate` | Generate Prisma client                              |
+| `npm run prisma:push`     | Push schema to database                             |
+| `npm run prisma:studio`   | Open Prisma Studio                                  |
 
 ---
 
-## Code Walkthrough
+## Project Walkthrough
 
-### App.tsx
+### 1. Home Page (`/`)
 
-- Main app logic: manages state, tabs, search, favourites, and modal.
-- Uses hooks (`useState`, `useEffect`, `useRef`) for state and lifecycle.
-- Handles API calls via `api.ts`.
+- Hero search with a search bar and advanced filters.
+- Tabs: **Home**, **Favourites**, **Collections**, **Meal Plan**, **Shopping List**.
+- Search results from Spoonacular API with dietary badges, scores, and images.
 
-#### Example: Search Recipes
+### 2. Recipe Detail (`/recipe/[id]`)
+
+- Full recipe info: instructions, ingredients, nutrition, taste, wine pairing.
+- Tabs: **Details**, **Summary**, **Info**, **Nutrition**, **Taste**.
+- Actions: Add to favourites, collections, meal plan, shopping list.
+- User notes, images, videos (when logged in).
+
+### 3. Blog (`/blog`)
+
+- List of blog posts from Contentful CMS.
+- Individual post at `/blog/[slug]`.
+
+### 4. Business Insights (`/business-insights`)
+
+- User stats, recipe activity, AI predictions, trends.
+- Popular recipes, top contributors, recent activity.
+
+### 5. API Status (`/api-status`)
+
+- Real-time status of main API endpoints.
+- Auto-refresh every 10 seconds.
+
+### 6. API Docs (`/api-docs`)
+
+- Endpoint reference grouped by category.
+- Method badges, paths, and params.
+
+---
+
+## API Endpoints
+
+The app uses a unified API handler at `/api/[...path]`, which routes to different logic by path.
+
+### Recipes
+
+| Method | Path                            | Description                                |
+| ------ | ------------------------------- | ------------------------------------------ |
+| GET    | `/api/recipes/search`           | Search recipes (searchTerm, page, filters) |
+| GET    | `/api/recipes/autocomplete`     | Autocomplete suggestions                   |
+| GET    | `/api/recipes/[id]/information` | Full recipe details                        |
+| GET    | `/api/recipes/[id]/summary`     | Recipe summary                             |
+| GET    | `/api/recipes/[id]/similar`     | Similar recipes                            |
+| GET    | `/api/recipes/favourite`        | User favourites (auth)                     |
+| POST   | `/api/recipes/favourite`        | Add favourite (auth)                       |
+| DELETE | `/api/recipes/favourite`        | Remove favourite (auth)                    |
+
+### Food & Wine
+
+| Method | Path                     | Description             |
+| ------ | ------------------------ | ----------------------- |
+| GET    | `/api/food/wine/dishes`  | Dishes for a wine       |
+| GET    | `/api/food/wine/pairing` | Wine pairing for a food |
+
+### Collections
+
+| Method | Path                          | Description              |
+| ------ | ----------------------------- | ------------------------ |
+| GET    | `/api/collections`            | List collections (auth)  |
+| GET    | `/api/collections/[id]`       | Get collection (auth)    |
+| GET    | `/api/collections/[id]/items` | Collection items (auth)  |
+| POST   | `/api/collections`            | Create collection (auth) |
+| POST   | `/api/collections/[id]/items` | Add item (auth)          |
+| PUT    | `/api/collections/[id]`       | Update collection (auth) |
+| DELETE | `/api/collections/[id]`       | Delete collection (auth) |
+| DELETE | `/api/collections/[id]/items` | Remove item (auth)       |
+
+### Meal Plan & Shopping
+
+| Method | Path                 | Description               |
+| ------ | -------------------- | ------------------------- |
+| GET    | `/api/meal-plan`     | Get meal plan (auth)      |
+| POST   | `/api/meal-plan`     | Add to meal plan (auth)   |
+| DELETE | `/api/meal-plan`     | Clear meal plan (auth)    |
+| GET    | `/api/shopping-list` | Get shopping list (auth)  |
+| POST   | `/api/shopping-list` | Create/update list (auth) |
+| PUT    | `/api/shopping-list` | Update list (auth)        |
+| DELETE | `/api/shopping-list` | Clear list (auth)         |
+
+### Platform & CMS
+
+| Method | Path                     | Description         |
+| ------ | ------------------------ | ------------------- |
+| GET    | `/api/cms/blog`          | List blog posts     |
+| GET    | `/api/cms/blog/[slug]`   | Single blog post    |
+| GET    | `/api/business-insights` | Platform statistics |
+| GET    | `/api/status`            | API health status   |
+
+---
+
+## Components & Reusability
+
+### Using Components in Other Projects
+
+Most components are self-contained and can be reused by copying the component and its dependencies.
+
+**Example: Recipe card**
 
 ```tsx
-const handleSearchSubmit = async (event: FormEvent) => {
-  event.preventDefault();
-  setApiError("");
-  try {
-    const response = await api.searchRecipes(searchTerm, 1);
-    if (response.status === "failure" || response.code === 402) {
-      setApiError(response.message || "API quota reached.");
-      setRecipes([]);
-    } else {
-      setRecipes(Array.isArray(response.results) ? response.results : []);
-      pageNumber.current = 1;
-    }
-  } catch (e) {
-    setRecipes([]);
-  }
-};
+// src/components/recipes/RecipeCard.tsx
+import RecipeCard from "@/components/recipes/RecipeCard";
+
+<RecipeCard recipe={recipe} onFavouriteToggle={() => {}} isFavourite={false} />;
 ```
 
----
-
-### api.ts
-
-- Handles all API requests to the backend.
-- Uses `fetch` and the `NEXT_PUBLIC_API_URL` environment variable (or relative paths if empty).
-
-#### Example: Add Favourite Recipe
-
-```typescript
-export const addFavouriteRecipe = async (recipe: Recipe) => {
-  const url = new URL("/api/recipes/favourite", API_URL);
-  const body = { recipeId: recipe.id };
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
-  }
-};
-```
-
----
-
-### RecipeCard.tsx
-
-- Displays a recipe card with image, title, and favourite button.
-- Handles click events for viewing details and toggling favourites.
-
-#### Example: Using RecipeCard in App.tsx
+**Example: Search input**
 
 ```tsx
-<RecipeCard
-  key={recipe.id}
-  recipe={recipe}
-  onClick={() => setSelectedRecipe(recipe)}
-  onFavouriteButtonClick={
-    isFavourite ? removeFavouriteRecipe : addFavouriteRecipe
-  }
-  isFavourite={isFavourite}
-/>
+import SearchInput from "@/components/search/SearchInput";
+
+<SearchInput
+  onSearch={(term) => console.log(term)}
+  placeholder="Search recipes..."
+/>;
 ```
 
----
+### Component Architecture
 
-### RecipeModal.tsx
+- **Pages** (`src/components/pages/`) – full-page client components.
+- **Features** (`src/components/recipes/`, `collections/`, etc.) – feature-specific components.
+- **UI** (`src/components/ui/`) – ShadCN primitives (Button, Card, Dialog, etc.).
+- **Skeletons** (`src/components/skeletons/`) – loading placeholders.
 
-- Shows a modal with the recipe summary and title.
-- Fetches summary from backend on open.
-- Ensures links open in a new tab.
-
-#### Example: Usage in App.tsx
+### Hooks Usage
 
 ```tsx
-{
-  selectedRecipe ? (
-    <RecipeModal
-      recipeId={selectedRecipe.id.toString()}
-      onClose={() => setSelectedRecipe(undefined)}
-    />
-  ) : null;
-}
+import { useRecipes } from "@/hooks/useRecipes";
+import { useCollections } from "@/hooks/useCollections";
+import { useIsFavourite } from "@/hooks/useIsFavourite";
+
+const { data, isLoading, searchRecipes } = useRecipes();
+const { collections, createCollection } = useCollections();
+const { isFavourite, toggleFavourite } = useIsFavourite(recipeId);
 ```
 
 ---
 
-### types.ts
+## Routes
 
-- TypeScript interfaces for recipe data.
-
-**Example:**
-
-```typescript
-export interface Recipe {
-  id: number;
-  title: string;
-  image: string;
-  imageType: string;
-}
-```
+| Route                | Type    | Description         |
+| -------------------- | ------- | ------------------- |
+| `/`                  | Static  | Home (search, tabs) |
+| `/recipe/[id]`       | Dynamic | Recipe detail       |
+| `/blog`              | Static  | Blog list           |
+| `/blog/[slug]`       | Dynamic | Blog post           |
+| `/business-insights` | Static  | Analytics dashboard |
+| `/api-status`        | Static  | API status page     |
+| `/api-docs`          | Static  | API docs page       |
+| `/test-sentry`       | Static  | Sentry test page    |
 
 ---
 
-### App.css
+## Database Schema
 
-- Styles for layout, modal, cards, buttons, and responsive design.
-- Uses CSS grid for recipe layout and media queries for responsiveness.
+Key models (Prisma):
 
-#### Example: Modal Styles
-
-```css
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  max-height: 90vh;
-  width: 90vw;
-  max-width: 600px;
-  overflow-y: auto;
-  border-radius: 16px;
-  background: #fff;
-}
-```
+- **User** – Auth, profile, relations
+- **FavouriteRecipes** – User favourites
+- **RecipeCollection** – Custom collections
+- **CollectionItem** – Items in collections
+- **RecipeNote** – User notes on recipes
+- **MealPlan** / **MealPlanItem** – Meal planning
+- **ShoppingList** – Shopping lists
+- **RecipeImage** – User-uploaded images (Cloudinary)
+- **FilterPreset** – Saved search filters
+- **RecipeVideo** – User-added videos
 
 ---
 
-## Reusing Components & Extending
+## Keywords
 
-- **RecipeCard**: Use in any recipe grid/list. Pass `recipe`, `onClick`, `onFavouriteButtonClick`, and `isFavourite` props.
-- **RecipeModal**: Use for any modal summary/details. Pass `recipeId` and `onClose`.
-- **api.ts**: Import and use API functions in any React component.
-- **Types**: Import from `types.ts` for type safety in new components.
-- **Easy Extension**: Add new tabs, features, or endpoints by following the modular structure.
-
-### Example: Add a New API Call
-
-```typescript
-export const getRecipeInstructions = async (recipeId: string) => {
-  const url = new URL(`/api/recipes/${recipeId}/instructions`, API_URL);
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Failed to fetch instructions");
-  return response.json();
-};
-```
-
----
-
-## Tech Stack & Keywords
-
-- **React**
-- **TypeScript**
-- **Vite**
-- **REST API**
-- **Modular Components**
-- **Hooks**
-- **Responsive Design**
-- **CSS Grid**
-- **Frontend for Backend**
-- **API Integration**
-- **Reusable UI**
+`recipe app`, `Next.js`, `React`, `TypeScript`, `Spoonacular API`, `PostgreSQL`, `Prisma`, `NextAuth`, `full-stack`, `meal planning`, `shopping list`, `recipe collections`, `favourites`, `AI recipe`, `Contentful`, `Cloudinary`, `Tailwind CSS`, `ShadCN`, `Vercel`, `Redis`, `Sentry`
 
 ---
 
 ## Conclusion
 
-This frontend is a modern, extensible, and user-friendly interface for recipe discovery and management. It demonstrates best practices in React, TypeScript, API integration, and UI/UX design. Use it as a learning resource, a starter for your own projects, or as a frontend for your backend APIs.
+Recipe Guide is a full-featured recipe platform built with modern web technologies. It demonstrates:
+
+- Next.js 15 App Router with server and client components
+- Prisma + PostgreSQL for data
+- NextAuth for OAuth and credentials
+- REST API design with a unified handler
+- ShadCN UI and Tailwind for consistent design
+- API key rotation, caching, and error monitoring
+
+Use it as a reference for building similar apps or as a base to extend with new features.
 
 ---
 
 ## Happy Coding! 🎉
 
-Feel free to use this project repository and extend this project further!
+This is an **open-source project** - feel free to use, enhance, and extend this project further!
 
-If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://arnob-mahmud.vercel.app/](https://arnob-mahmud.vercel.app/).
+If you have any questions or want to share your work, reach out via GitHub or my portfolio at [https://www.arnobmahmud.com/](https://www.arnobmahmud.com/).
 
 **Enjoy building and learning!** 🚀
 
